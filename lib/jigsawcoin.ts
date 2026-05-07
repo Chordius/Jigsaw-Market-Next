@@ -37,10 +37,10 @@ export async function lookupGlobalUser(email: string) {
     return response.data.payload;
 }
 
-export async function createGlobalUser(email: string) {
+export async function createGlobalUser(email: string, password: string) {
     const response = await axios.post(
         `${CENTRAL_API_URL}/api/v1/user/create`,
-        { email },
+        { email, password },
         { headers: { 'x-api-key': API_KEY } }
     );
 

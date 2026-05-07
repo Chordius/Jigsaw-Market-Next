@@ -14,19 +14,18 @@ export async function registerUserService(username: string, email: string, passw
         
         if (localCheck.rows.length > 0) throw new Error('Email or Username already registered in JigsawMarket');
 
+        const salt  = await bcrypt.genSalt(10);
+        const password = await bcrypt.hash(passwordRaw, salt);
+
         let globalUserId: string;
         const existingGlobalUser = await lookupGlobalUser(email);
 
         if (existingGlobalUser && existingGlobalUser.global_user_id) {
             globalUserId = existingGlobalUser.global_user_id;
         } else {
-            const newGlobalUser = await createGlobalUser(email);
+            const newGlobalUser = await createGlobalUser(email, password);
             globalUserId = newGlobalUser.global_user_id;
         }
-
-        console.log(globalUserId);
-        const salt  = await bcrypt.genSalt(10);
-        const password = await bcrypt.hash(passwordRaw, salt);
 
         const result = await client.query(`
             INSERT INTO local_users (central_user_id, username, email, password_hash)
