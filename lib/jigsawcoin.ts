@@ -37,14 +37,38 @@ export async function lookupGlobalUser(email: string) {
     return response.data.payload;
 }
 
-export async function createGlobalUser(email: string, password: string) {
-    const response = await axios.post(
-        `${CENTRAL_API_URL}/api/v1/user/create`,
-        { email, password },
-        { headers: { 'x-api-key': API_KEY } }
-    );
+export async function registerGlobalUser(email: string, passwordRaw: string) {
+    try {
+        const response = await axios.post(
+            `${CENTRAL_API_URL}/api/v1/user/register`,
+            { 
+                email: email, 
+                password: passwordRaw
+            },
+            { headers: { 'x-api-key': API_KEY } }
+        );
 
-    if (!response.data.success) throw new Error(response.data.message || 'Failed to create global user');
+        return response.data.payload;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || 'Failed to register globally';
+        throw new Error(errorMessage);
+    }
+}
 
-    return response.data.payload;
+export async function loginGlobalUser(email: string, passwordRaw: string) {
+    try {
+        const response = await axios.post(
+            `${CENTRAL_API_URL}/api/v1/user/login`,
+            { 
+                email: email, 
+                password: passwordRaw 
+            },
+            { headers: { 'x-api-key': API_KEY } }
+        );
+
+        return response.data.payload;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || 'Invalid email or password';
+        throw new Error(errorMessage);
+    }
 }

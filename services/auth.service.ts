@@ -1,5 +1,5 @@
 import { pool } from '@/lib/db';
-import { lookupGlobalUser, createGlobalUser } from '@/lib/jigsawcoin';
+import { loginGlobalUser, registerGlobalUser } from '@/lib/jigsawcoin';
 import bcrypt from 'bcryptjs';
 
 
@@ -14,25 +14,23 @@ export async function registerUserService(username: string, email: string, passw
         
         if (localCheck.rows.length > 0) throw new Error('Email or Username already registered in JigsawMarket');
 
-        const salt  = await bcrypt.genSalt(10);
-        const password = await bcrypt.hash(passwordRaw, salt);
-
         let globalUserId: string;
-        const existingGlobalUser = await lookupGlobalUser(email);
-
-        if (existingGlobalUser && existingGlobalUser.global_user_id) {
-            globalUserId = existingGlobalUser.global_user_id;
-        } else {
-            const newGlobalUser = await createGlobalUser(email, password);
+        try {
+            const newGlobalUser = await registerGlobalUser(email, passwordRaw);
             globalUserId = newGlobalUser.global_user_id;
+        } catch (error: any) {
+            if (error.message.includes('already registered')) {
+                throw new Error('Email is already used. Please log in instead.');
+            }
+            throw error;
         }
 
         const result = await client.query(`
-            INSERT INTO local_users (central_user_id, username, email, password_hash)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO local_users (central_user_id, username, email)
+            VALUES ($1, $2, $3)
             RETURNING id, central_user_id, username, email
             `, 
-            [globalUserId, username, email, password]
+            [globalUserId, username, email]
         );
 
         return result.rows[0];
@@ -45,25 +43,37 @@ export async function loginUserService(email: string, passwordRaw: string) {
     const client = await pool.connect();
 
     try {
-        const result = await client.query(
-            'SELECT id, central_user_id, username, password_hash FROM local_users WHERE email = $1',
-            [email]
+        const centralAuth = await loginGlobalUser(email, passwordRaw);
+        const globalUserId = centralAuth.global_user_id;
+
+        let localCheck = await client.query(
+            'SELECT id, username FROM local_users WHERE central_user_id = $1',
+            [globalUserId]
         );
 
-        if (result.rows.length === 0) throw new Error('Invalid email or password');
+        if (localCheck.rows.length === 0) {
+            const baseUsername = email.split('@')[0];
+            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            const generatedUsername = `${baseUsername}_${randomSuffix}`;
 
-        const user = result.rows[0];
+            const insertResult = await client.query(`
+                INSERT INTO local_users (central_user_id, username, email)
+                VALUES ($1, $2, $3)
+                RETURNING id, username
+            `, [globalUserId, generatedUsername, email]);
 
-        const isMatch = await bcrypt.compare(passwordRaw, user.password_hash);
-        if (!isMatch) {
-            throw new Error('Invalid email or password');
+            localCheck = insertResult;
         }
+
+        const user = localCheck.rows[0];
 
         return {
             localId: user.id,
-            centralId: user.central_user_id,
+            centralId: globalUserId,
             username: user.username
         };
+    } catch (error: any) {
+        throw new Error(error.message || 'Invalid email or password');
     } finally {
         client.release();
     }
