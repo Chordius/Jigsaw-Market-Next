@@ -7,12 +7,23 @@ export async function registerUserService(username: string, email: string, passw
     const client = await pool.connect();
     
     try {
-        const localCheck = await client.query(
-            'SELECT id FROM local_users WHERE email = $1 AND username = $2',
-            [email, username]
+        const usernameCheck = await client.query(
+            'SELECT id FROM local_users WHERE username = $1',
+            [username]
         );
-        
-        if (localCheck.rows.length > 0) throw new Error('Email or Username already registered in JigsawMarket');
+
+        if (usernameCheck.rows.length > 0) {
+            throw new Error('Username is already taken in JigsawMarket');
+        }
+
+        const emailCheck = await client.query(
+            'SELECT id FROM local_users WHERE email = $1',
+            [email]
+        );
+
+        if (emailCheck.rows.length > 0) {
+            throw new Error('Email is already registered in JigsawMarket');
+        }
 
         let globalUserId: string;
         try {
@@ -25,15 +36,28 @@ export async function registerUserService(username: string, email: string, passw
             throw error;
         }
 
-        const result = await client.query(`
+        const result = await client.query(
+            `
             INSERT INTO local_users (central_user_id, username, email)
             VALUES ($1, $2, $3)
             RETURNING id, central_user_id, username, email
-            `, 
+            `,
             [globalUserId, username, email]
         );
 
         return result.rows[0];
+    } catch (error: any) {
+        if (error?.code === '23505') {
+            if (error.constraint === 'local_users_username_key') {
+                throw new Error('Username is already taken in JigsawMarket');
+            }
+
+            if (error.constraint === 'local_users_email_key') {
+                throw new Error('Email is already registered in JigsawMarket');
+            }
+        }
+
+        throw error;
     } finally {
         client.release();
     }
