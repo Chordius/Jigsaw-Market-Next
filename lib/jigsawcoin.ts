@@ -72,3 +72,24 @@ export async function loginGlobalUser(email: string, passwordRaw: string) {
         throw new Error(errorMessage);
     }
 }
+
+export async function creditCentralPoints(globalUserId: string, amount: number, localReferenceId: string) {
+    const response = await axios.post(
+        `${CENTRAL_API_URL}/api/v1/wallet/transaction`,
+        {
+            global_user_id: globalUserId,
+            amount: Math.abs(amount), // Ensure it is a credit (positive)
+            reference_id: localReferenceId,
+        },
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': API_KEY,
+            },
+        }
+    );
+
+    if (!response.data.success) throw new Error(response.data.message || 'Credit transaction failed');
+
+    return response.data.payload;
+}

@@ -67,6 +67,9 @@ export async function POST(request: Request) {
             typeof description === 'string' ? description.trim() : undefined
         );
 
+        // TODO (Rasya): Buat scheduler menggunakan upstash Redis or anything along those lines
+        // biar kita bisa nge-trigger market/[id]/resolve nantinya.
+
         return NextResponse.json(
             baseResponse(true, 'Market created successfully', newMarket),
             { status: 201 }
