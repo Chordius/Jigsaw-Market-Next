@@ -93,3 +93,19 @@ export async function creditCentralPoints(globalUserId: string, amount: number, 
 
     return response.data.payload;
 }
+
+export async function fetchCentralBalance(globalUserId: string) {
+    const response = await axios.get(
+        `${CENTRAL_API_URL}/api/v1/wallet/balance`,
+        {
+            headers: { 'x-api-key': API_KEY },
+            params: { global_user_id: globalUserId },
+            validateStatus: (status) => status < 500,
+        }
+    );
+
+    if (response.status === 404) throw new Error('User not found in central wallet');
+    if (!response.data.success) throw new Error(response.data.message || 'Failed to fetch balance');
+
+    return response.data.payload;
+}
