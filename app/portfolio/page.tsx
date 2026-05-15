@@ -26,10 +26,24 @@ interface Payout {
   resolved_outcome: string;
 }
 
+interface Order {
+  id: string;
+  order_type: 'BUY' | 'SELL';
+  outcome_type: 'YES' | 'NO';
+  shares_amount: number;
+  price_at_order: number;
+  total_cost: number;
+  created_at: string;
+  market_id: string;
+  market_title: string;
+}
+
 export default function PortfolioPage() {
   const { user } = useAuth();
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [activeTab, setActiveTab] = useState<'positions' | 'wins' | 'history'>('positions');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,9 +55,10 @@ export default function PortfolioPage() {
       }
       
       try {
-        const [holdingsRes, payoutsRes] = await Promise.all([
+        const [holdingsRes, payoutsRes, ordersRes] = await Promise.all([
           apiClient.get(`/holdings/${user.id}`),
-          apiClient.get(`/users/${user.id}/payouts`)
+          apiClient.get(`/users/${user.id}/payouts`),
+          apiClient.get(`/users/${user.id}/orders`)
         ]);
 
         if (holdingsRes.data.success) {
@@ -51,6 +66,9 @@ export default function PortfolioPage() {
         }
         if (payoutsRes.data.success) {
           setPayouts(payoutsRes.data.payload);
+        }
+        if (ordersRes.data.success) {
+          setOrders(ordersRes.data.payload);
         }
       } catch (err: any) {
         setError(err.message || 'Failed to fetch portfolio');
@@ -118,8 +136,36 @@ export default function PortfolioPage() {
         </div>
       </div>
 
-      {/* Holdings Table */}
-      <div className="mt-4 border border-outline-variant rounded-lg bg-surface overflow-hidden">
+      {/* Tab Switcher */}
+      <div className="flex gap-1 border-b border-outline-variant">
+        {(
+          [
+            { key: 'positions', label: 'Active Positions', icon: 'bar_chart', count: holdings.length },
+            { key: 'wins',      label: 'Recent Wins',      icon: 'military_tech', count: payouts.length },
+            { key: 'history',   label: 'Transaction History', icon: 'receipt_long', count: orders.length },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
+              activeTab === tab.key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-outline hover:text-on-surface hover:border-outline-variant'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+            {tab.label}
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-mono ${
+              activeTab === tab.key ? 'bg-primary/10 text-primary' : 'bg-surface-container text-outline'
+            }`}>{tab.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Active Positions Table */}
+      {activeTab === 'positions' && (
+      <div className="border border-outline-variant rounded-lg bg-surface overflow-hidden">
         <div className="bg-surface-container px-6 py-4 border-b border-outline-variant">
            <h3 className="font-h3 text-on-surface">Active Positions</h3>
         </div>
@@ -182,8 +228,10 @@ export default function PortfolioPage() {
           </div>
         )}
       </div>
+      )}
 
-      {/* Payouts Table */}
+      {/* Recent Wins Table */}
+      {activeTab === 'wins' && (
       <div className="mt-8 border border-outline-variant rounded-lg bg-surface overflow-hidden mb-12">
         <div className="bg-surface-container px-6 py-4 border-b border-outline-variant flex justify-between items-center">
            <h3 className="font-h3 text-on-surface">Recent Wins (Resolved Payouts)</h3>
@@ -235,6 +283,85 @@ export default function PortfolioPage() {
           </div>
         )}
       </div>
+      )}
+
+      {/* Transaction History Table */}
+      {activeTab === 'history' && (
+      <div className="border border-outline-variant rounded-lg bg-surface overflow-hidden mb-12">
+        <div className="bg-surface-container px-6 py-4 border-b border-outline-variant flex justify-between items-center">
+          <h3 className="font-h3 text-on-surface">Transaction History</h3>
+          <div className="font-mono-sm text-outline font-bold">
+            {orders.length} total transactions
+          </div>
+        </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-48">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="p-12 text-center text-on-surface-variant">
+            <span className="material-symbols-outlined text-4xl mb-2 text-outline">receipt_long</span>
+            <p>No transactions yet. Buy your first shares!</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-container-low border-b border-outline-variant">
+                  <th className="p-4 font-label-caps text-outline font-bold">Date</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-center">Type</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-center">Outcome</th>
+                  <th className="p-4 font-label-caps text-outline font-bold">Market</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-right">Shares</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-right">Price / Share</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-right">Total Cost</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant">
+                {orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <td className="p-4 font-mono-sm text-outline whitespace-nowrap">
+                      {new Date(order.created_at).toLocaleDateString()}
+                      <div className="text-xs text-on-surface-variant">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className={`inline-block font-label-caps px-2 py-1 rounded ${
+                        order.order_type === 'BUY'
+                          ? 'bg-primary/10 border border-primary text-primary'
+                          : 'bg-error/10 border border-error text-error'
+                      }`}>
+                        {order.order_type}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className={`inline-block font-label-caps px-2 py-1 rounded ${
+                        order.outcome_type === 'YES'
+                          ? 'bg-secondary/10 border border-secondary text-secondary'
+                          : 'bg-error/10 border border-error text-error'
+                      }`}>
+                        {order.outcome_type}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <Link href={`/markets/${order.market_id}`} className="font-body-md text-on-surface line-clamp-1 hover:text-primary transition-colors" title={order.market_title}>
+                        {order.market_title}
+                      </Link>
+                    </td>
+                    <td className="p-4 text-right font-mono-md text-on-surface">{Number(order.shares_amount).toLocaleString()}</td>
+                    <td className="p-4 text-right font-mono-sm text-outline">🪙 {Number(order.price_at_order).toFixed(4)}</td>
+                    <td className={`p-4 text-right font-mono-md font-bold ${
+                      order.order_type === 'BUY' ? 'text-error' : 'text-secondary'
+                    }`}>
+                      {order.order_type === 'BUY' ? '-' : '+'}🪙 {Number(order.total_cost).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      )}
     </div>
   );
 }
