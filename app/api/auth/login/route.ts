@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { baseResponse } from '@/lib/base_response';
 import { loginUserService } from '@/services/auth.service';
+import { createSession } from '@/lib/auth';
 
 export async function POST(request: Request) {
     try {
@@ -11,6 +12,15 @@ export async function POST(request: Request) {
         }
 
         const user = await loginUserService(email, password);
+        
+        // Create HTTP-only JWT session
+        await createSession({
+            id: user.id,
+            central_user_id: user.central_user_id,
+            username: user.username,
+            email: email
+        });
+
         return NextResponse.json(baseResponse(true, 'Login successful', { user }), { status: 200 });
     } catch (error: any) {
         console.error('Login Error:', error.message);

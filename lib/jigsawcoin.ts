@@ -25,9 +25,8 @@ export async function deductCentralPoints(globalUserId: string, amount: number, 
 }
 
 export async function lookupGlobalUser(email: string) {
-    const response = await axios.get(`${CENTRAL_API_URL}/api/v1/user/lookup`, {
+    const response = await axios.get(`${CENTRAL_API_URL}/api/v1/user/lookup/${email}`, {
         headers: { 'x-api-key': API_KEY },
-        params: { email },
         validateStatus: (status) => status < 500,
     });
 
@@ -41,8 +40,8 @@ export async function registerGlobalUser(email: string, passwordRaw: string) {
     try {
         const response = await axios.post(
             `${CENTRAL_API_URL}/api/v1/user/register`,
-            { 
-                email: email, 
+            {
+                email: email,
                 password: passwordRaw
             },
             { headers: { 'x-api-key': API_KEY } }
@@ -59,9 +58,9 @@ export async function loginGlobalUser(email: string, passwordRaw: string) {
     try {
         const response = await axios.post(
             `${CENTRAL_API_URL}/api/v1/user/login`,
-            { 
-                email: email, 
-                password: passwordRaw 
+            {
+                email: email,
+                password: passwordRaw
             },
             { headers: { 'x-api-key': API_KEY } }
         );
@@ -96,10 +95,9 @@ export async function creditCentralPoints(globalUserId: string, amount: number, 
 
 export async function fetchCentralBalance(globalUserId: string) {
     const response = await axios.get(
-        `${CENTRAL_API_URL}/api/v1/wallet/balance`,
+        `${CENTRAL_API_URL}/api/v1/wallet/balance/${globalUserId}`,
         {
             headers: { 'x-api-key': API_KEY },
-            params: { global_user_id: globalUserId },
             validateStatus: (status) => status < 500,
         }
     );

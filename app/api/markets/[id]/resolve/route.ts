@@ -6,7 +6,7 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : 'Unknown error';
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const expectedResolverKey = process.env.MARKET_RESOLUTION_API_KEY;
         const providedResolverKey = request.headers.get('x-resolution-key');
@@ -14,8 +14,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
             return NextResponse.json(baseResponse(false, 'Unauthorized', null), { status: 401 });
         }
 
-        const resolvedParams = await params;
-        const marketId = resolvedParams.id;
+        const { id: marketId } = await params;
         const body = await request.json();
         const outcome = (body?.outcome ?? '').toUpperCase();
 

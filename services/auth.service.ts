@@ -92,8 +92,8 @@ export async function loginUserService(email: string, passwordRaw: string) {
         const user = localCheck.rows[0];
 
         return {
-            localId: user.id,
-            centralId: globalUserId,
+            id: user.id,
+            central_user_id: globalUserId,
             username: user.username
         };
     } catch (error: any) {

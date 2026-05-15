@@ -2,22 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-.custom-shape-divider-top-1776946470 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    overflow: hidden;
-    line-height: 0;
+@layer base {
+  body {
+    background-color: #0A0C10;
+    background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: theme('colors.on-surface');
+  }
+  
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
-.custom-shape-divider-top-1776946470 svg {
-    position: relative;
-    display: block;
-    width: calc(100% + 1.3px);
-    height: 31px;
-}
-
-.custom-shape-divider-top-1776946470 .shape-fill {
-    fill: #500778;
+@layer utilities {
+  .bloom-green:hover { box-shadow: 0 0 12px rgba(74, 225, 118, 0.2); }
+  .bloom-red:hover { box-shadow: 0 0 12px rgba(255, 84, 81, 0.2); }
+  .glass-panel {
+    background: rgba(16, 20, 28, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }

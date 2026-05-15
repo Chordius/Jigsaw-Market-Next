@@ -4,11 +4,10 @@ import { baseResponse } from '@/lib/base_response';
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const resolvedParams = await params;
-        const marketId = resolvedParams.id;
+        const { id: marketId } = await params;
         const market = await getMarketByIdService(marketId);
 
         if (!market) {
@@ -23,7 +22,7 @@ export async function GET(
             { status: 200 }
         );
     } catch (error: any) {
-        console.error(`Error fetching market ${params.id}:`, error.message);
+        console.error(`Error fetching market:`, error.message);
         return NextResponse.json(
             baseResponse(false, "Internal server error while fetching market details", null),
             { status: 500 }
