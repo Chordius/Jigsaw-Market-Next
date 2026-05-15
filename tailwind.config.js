@@ -91,6 +91,10 @@ module.exports = {
         "h3": ["18px", { "lineHeight": "1.2", "fontWeight": "700" }],
         "h1": ["40px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "900" }],
         "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "500" }]
+      },
+      "boxShadow": {
+        "bloom-green": "0 0 12px rgba(74, 225, 118, 0.2)",
+        "bloom-red": "0 0 12px rgba(255, 84, 81, 0.2)"
       }
     },
   },

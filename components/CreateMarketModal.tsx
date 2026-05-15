@@ -25,12 +25,16 @@ export default function CreateMarketModal({ isOpen, onClose, onSuccess }: Create
     setLoading(true);
 
     try {
-      const { data } = await apiClient.post('/markets', {
+      const payload: any = {
         title,
-        description,
         category,
-        end_date: new Date(endDate).toISOString(),
-      });
+        endDate: `${endDate}T23:59:59Z`,
+      };
+      if (description.trim()) {
+        payload.description = description.trim();
+      }
+
+      const { data } = await apiClient.post('/markets', payload);
 
       if (data.success) {
         onSuccess();
@@ -50,7 +54,7 @@ export default function CreateMarketModal({ isOpen, onClose, onSuccess }: Create
       <div className="bg-surface-container border border-outline-variant rounded shadow-2xl w-full max-w-2xl relative overflow-hidden flex flex-col">
         {/* Modal Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-outline-variant bg-surface">
-          <h2 className="font-h3 text-h3 text-on-surface">Buat Market Baru</h2>
+          <h2 className="font-h3 text-h3 text-on-surface">Create New Market</h2>
           <button onClick={onClose} className="text-outline hover:text-on-surface transition-colors focus:outline-none">
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -65,25 +69,25 @@ export default function CreateMarketModal({ isOpen, onClose, onSuccess }: Create
           )}
           
           <div className="space-y-2">
-            <label className="block font-body-sm text-on-surface-variant">Judul Prediksi *</label>
+            <label className="block font-body-sm text-on-surface-variant">Prediction Title *</label>
             <input 
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full bg-background border border-outline focus:border-primary focus:ring-1 focus:ring-primary rounded p-3 font-body-md text-on-surface placeholder-outline/50 transition-all outline-none" 
-              placeholder="Apakah X akan terjadi sebelum..." 
+              placeholder="Will X happen before..." 
               type="text"
             />
-            <p className="font-mono-sm text-outline mt-1">Pertanyaan harus bisa dijawab YES/NO</p>
+            <p className="font-mono-sm text-outline mt-1">Question must be answerable with YES/NO</p>
           </div>
 
           <div className="space-y-2">
-            <label className="block font-body-sm text-on-surface-variant">Deskripsi / Aturan Resolusi</label>
+            <label className="block font-body-sm text-on-surface-variant">Description / Resolution rules</label>
             <textarea 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full bg-background border border-outline focus:border-primary focus:ring-1 focus:ring-primary rounded p-3 font-body-sm text-on-surface placeholder-outline/50 transition-all outline-none resize-y" 
-              placeholder="Detail aturan penyelesaian market..." 
+              placeholder="Detailed rules of resolution..." 
               rows={4}
             />
           </div>
@@ -98,13 +102,14 @@ export default function CreateMarketModal({ isOpen, onClose, onSuccess }: Create
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full bg-background border border-outline focus:border-primary focus:ring-1 focus:ring-primary rounded p-3 font-body-md text-on-surface appearance-none outline-none transition-all"
                 >
-                  <option disabled value="">Pilih Kategori</option>
-                  <option value="politics">Politik</option>
-                  <option value="sports">Olahraga</option>
-                  <option value="crypto">Crypto</option>
-                  <option value="tech">Tech</option>
-                  <option value="entertainment">Entertainment</option>
-                  <option value="climate">Climate</option>
+                  <option disabled value="">Select Category</option>
+                  <option value="Politics">Politics</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Academics">Academics</option>
+                  <option value="Economy">Economy</option>
+                  <option value="Tech">Tech</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Others">Others</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-outline">
                   <span className="material-symbols-outlined">expand_more</span>
@@ -113,7 +118,7 @@ export default function CreateMarketModal({ isOpen, onClose, onSuccess }: Create
             </div>
 
             <div className="space-y-2">
-              <label className="block font-body-sm text-on-surface-variant">Tanggal Berakhir *</label>
+              <label className="block font-body-sm text-on-surface-variant">End Date *</label>
               <div className="relative">
                 <input 
                   required
@@ -136,14 +141,14 @@ export default function CreateMarketModal({ isOpen, onClose, onSuccess }: Create
               type="button"
               className="px-6 py-2 rounded border border-outline text-on-surface-variant font-body-sm hover:bg-surface-variant hover:text-on-surface transition-colors focus:outline-none"
             >
-              Batal
+              Cancel
             </button>
             <button 
               type="submit"
               disabled={loading}
               className="px-6 py-2 rounded bg-primary-container text-on-primary-container font-body-sm font-bold disabled:opacity-50 hover:bg-primary hover:text-on-primary transition-colors focus:outline-none flex items-center gap-2"
             >
-              {loading ? 'Menyimpan...' : 'Buat Market'}
+              {loading ? 'Creating...' : 'Create Market'}
               {!loading && <span className="material-symbols-outlined text-[18px]">arrow_forward</span>}
             </button>
           </div>

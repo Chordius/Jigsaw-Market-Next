@@ -18,25 +18,39 @@ interface Holding {
   unrealized_pnl: number;
 }
 
+interface Payout {
+  id: string;
+  payout_amount: number;
+  processed_at: string;
+  market_title: string;
+  resolved_outcome: string;
+}
+
 export default function PortfolioPage() {
   const { user } = useAuth();
   const [holdings, setHoldings] = useState<Holding[]>([]);
+  const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchHoldings = async () => {
+    const fetchData = async () => {
       if (!user) {
         setLoading(false);
         return;
       }
       
       try {
-        const { data } = await apiClient.get(`/holdings/${user.id}`);
-        if (data.success) {
-          setHoldings(data.payload);
-        } else {
-          setError(data.message);
+        const [holdingsRes, payoutsRes] = await Promise.all([
+          apiClient.get(`/holdings/${user.id}`),
+          apiClient.get(`/users/${user.id}/payouts`)
+        ]);
+
+        if (holdingsRes.data.success) {
+          setHoldings(holdingsRes.data.payload);
+        }
+        if (payoutsRes.data.success) {
+          setPayouts(payoutsRes.data.payload);
         }
       } catch (err: any) {
         setError(err.message || 'Failed to fetch portfolio');
@@ -45,7 +59,7 @@ export default function PortfolioPage() {
       }
     };
 
-    fetchHoldings();
+    fetchData();
   }, [user]);
 
   if (!user && !loading) {
@@ -69,12 +83,12 @@ export default function PortfolioPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-outline-variant pb-4 mt-8">
         <div>
-          <h1 className="font-h1 text-h1 text-on-surface mb-2">Portfolio Kamu</h1>
+          <h1 className="font-h1 text-h1 text-on-surface mb-2">Your Portfolio</h1>
           <p className="font-body-sm text-body-sm text-outline">Manage your active positions and track performance.</p>
         </div>
         <Link href="/markets" className="bg-primary-container text-on-primary-container font-body-sm text-body-sm font-bold py-2 px-4 rounded flex items-center gap-2 hover:bg-primary transition-colors shadow-[0_0_12px_rgba(80,143,248,0.2)]">
           <span className="material-symbols-outlined text-[18px]">search</span>
-          Jelajahi Markets
+          Explore Markets
         </Link>
       </div>
 
@@ -82,7 +96,7 @@ export default function PortfolioPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-1 bg-outline-variant p-[1px] rounded-lg">
         {/* Balance Card */}
         <div className="bg-surface p-6 rounded-t-lg md:rounded-l-lg md:rounded-tr-none flex flex-col justify-center">
-          <span className="font-label-caps text-label-caps text-outline mb-2 uppercase">Saldo Tersedia</span>
+          <span className="font-label-caps text-label-caps text-outline mb-2 uppercase">Available Balance</span>
           <div className="font-mono-lg text-mono-lg text-[#FACC15] font-bold">
             🪙 {user?.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}
           </div>
@@ -106,6 +120,9 @@ export default function PortfolioPage() {
 
       {/* Holdings Table */}
       <div className="mt-4 border border-outline-variant rounded-lg bg-surface overflow-hidden">
+        <div className="bg-surface-container px-6 py-4 border-b border-outline-variant">
+           <h3 className="font-h3 text-on-surface">Active Positions</h3>
+        </div>
         {loading ? (
           <div className="flex justify-center items-center h-48">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -121,7 +138,7 @@ export default function PortfolioPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container border-b border-outline-variant">
+                <tr className="bg-surface-container-low border-b border-outline-variant">
                   <th className="p-4 font-label-caps text-outline font-bold">Market</th>
                   <th className="p-4 font-label-caps text-outline font-bold text-center">Outcome</th>
                   <th className="p-4 font-label-caps text-outline font-bold text-right">Shares</th>
@@ -132,11 +149,16 @@ export default function PortfolioPage() {
               </thead>
               <tbody className="divide-y divide-outline-variant">
                 {holdings.map((holding) => (
-                  <tr key={holding.holding_id} className="hover:bg-surface-container-low transition-colors group">
+                  <tr key={holding.holding_id} className="hover:bg-surface-container-lowest transition-colors group">
                     <td className="p-4">
-                      <Link href={`/markets/${holding.market_id}`} className="font-body-md font-bold text-on-surface hover:text-primary transition-colors block max-w-xs truncate" title={holding.market_title}>
-                        {holding.market_title}
-                      </Link>
+                      <div className="flex flex-col">
+                        <span className="font-body-md font-bold text-on-surface line-clamp-1 mb-1" title={holding.market_title}>
+                          {holding.market_title}
+                        </span>
+                        <Link href={`/markets/${holding.market_id}`} className="text-primary text-xs font-bold hover:underline flex items-center gap-1">
+                          VIEW MARKET <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                        </Link>
+                      </div>
                     </td>
                     <td className="p-4 text-center">
                       <span className={`inline-block font-label-caps px-2 py-1 rounded shadow-sm ${
@@ -148,10 +170,63 @@ export default function PortfolioPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right font-mono-md text-on-surface">{holding.shares_amount.toLocaleString()}</td>
-                    <td className="p-4 text-right font-mono-md text-outline">🪙 {(Number(holding.average_buy_price) * 100).toFixed(0)}¢</td>
-                    <td className="p-4 text-right font-mono-md text-on-surface">🪙 {(Number(holding.current_price) * 100).toFixed(0)}¢</td>
+                    <td className="p-4 text-right font-mono-md text-outline">🪙 {Number(holding.average_buy_price).toFixed(2)}</td>
+                    <td className="p-4 text-right font-mono-md text-on-surface">🪙 {Number(holding.current_price).toFixed(2)}</td>
                     <td className={`p-4 text-right font-mono-md font-bold ${Number(holding.unrealized_pnl) >= 0 ? 'text-secondary' : 'text-error'}`}>
                       {Number(holding.unrealized_pnl) >= 0 ? '+' : ''}{Number(holding.unrealized_pnl).toFixed(2)} 🪙
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Payouts Table */}
+      <div className="mt-8 border border-outline-variant rounded-lg bg-surface overflow-hidden mb-12">
+        <div className="bg-surface-container px-6 py-4 border-b border-outline-variant flex justify-between items-center">
+           <h3 className="font-h3 text-on-surface">Recent Wins (Resolved Payouts)</h3>
+           <div className="font-mono-sm text-secondary font-bold">
+             Total Won: 🪙 {payouts.reduce((sum, p) => sum + Number(p.payout_amount), 0).toFixed(2)}
+           </div>
+        </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-48">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : payouts.length === 0 ? (
+          <div className="p-12 text-center text-on-surface-variant">
+            <span className="material-symbols-outlined text-4xl mb-2 text-outline">military_tech</span>
+            <p>No resolved winnings yet. Keep predicting!</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-container-low border-b border-outline-variant">
+                  <th className="p-4 font-label-caps text-outline font-bold">Market</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-center">Outcome</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-right">Settled Date</th>
+                  <th className="p-4 font-label-caps text-outline font-bold text-right">Payout Received</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant">
+                {payouts.map((payout) => (
+                  <tr key={payout.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <td className="p-4">
+                      <span className="font-body-md font-bold text-on-surface line-clamp-1">{payout.market_title}</span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="font-label-caps bg-outline-variant/30 px-2 py-1 rounded text-on-surface text-xs">
+                        {payout.resolved_outcome}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right font-mono-sm text-outline">
+                      {new Date(payout.processed_at).toLocaleDateString()}
+                    </td>
+                    <td className="p-4 text-right font-mono-md font-bold text-secondary">
+                      +🪙 {Number(payout.payout_amount).toFixed(2)}
                     </td>
                   </tr>
                 ))}

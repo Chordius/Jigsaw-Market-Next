@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { baseResponse } from '@/lib/base_response';
 import { loginUserService } from '@/services/auth.service';
 import { createSession } from '@/lib/auth';
+import { fetchCentralHistory, creditCentralPoints } from '@/lib/jigsawcoin';
 
 export async function POST(request: Request) {
     try {
@@ -13,7 +14,6 @@ export async function POST(request: Request) {
 
         const user = await loginUserService(email, password);
         
-        // Create HTTP-only JWT session
         await createSession({
             id: user.id,
             central_user_id: user.central_user_id,

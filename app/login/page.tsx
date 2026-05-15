@@ -64,8 +64,8 @@ export default function LoginPage() {
 
           {/* Header */}
           <div className="mb-8">
-            <h2 className="font-h2 text-h2 text-on-surface">Selamat datang kembali</h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">Masuk ke akun Jigsaw kamu</p>
+            <h2 className="font-h2 text-h2 text-on-surface">Welcome back</h2>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">Log in to your Jigsaw account</p>
           </div>
 
           {/* Error Banner */}
@@ -121,7 +121,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input className="form-checkbox bg-background border-outline-variant text-primary rounded-sm focus:ring-primary focus:ring-offset-background" type="checkbox" />
-                <span className="font-body-sm text-body-sm text-on-surface-variant">Ingat saya</span>
+                <span className="font-body-sm text-body-sm text-on-surface-variant">Remember me</span>
               </label>
             </div>
 
@@ -131,21 +131,21 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Masuk...' : 'Masuk'}
+              {loading ? 'Logging in...' : 'Log in'}
             </button>
           </form>
 
           {/* Divider */}
           <div className="my-8 flex items-center gap-4">
             <div className="flex-1 h-px bg-outline-variant"></div>
-            <span className="font-mono-sm text-mono-sm text-outline">-- atau --</span>
+            <span className="font-mono-sm text-mono-sm text-outline">-- or --</span>
             <div className="flex-1 h-px bg-outline-variant"></div>
           </div>
 
           {/* Sign Up Link */}
           <div className="text-center">
             <Link className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors inline-flex items-center gap-1 group" href="/register">
-              Belum punya akun? <span className="text-primary font-bold group-hover:underline">Daftar di sini</span>
+              Don't have an account? <span className="text-primary font-bold group-hover:underline">Sign up here</span>
               <span className="material-symbols-outlined text-sm text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
             </Link>
           </div>

@@ -29,7 +29,7 @@ export async function getUserTradingLeaderboardService(limit = 20) {
                                 END
                             ELSE 0.5
                         END
-                    ), 0) AS current_position_value
+                    ) * 10, 0) AS current_position_value
                 FROM holdings h
                 JOIN markets m ON m.id = h.market_id
                 WHERE h.shares_amount > 0

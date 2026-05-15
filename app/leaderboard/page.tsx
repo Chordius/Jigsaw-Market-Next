@@ -22,6 +22,9 @@ export default function LeaderboardPage() {
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -41,8 +44,16 @@ export default function LeaderboardPage() {
     fetchLeaderboard();
   }, []);
 
-  const top3 = users.slice(0, 3);
-  const others = users.slice(3);
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  
+  const currentUsers = users.slice(startIndex, endIndex);
+
+  const showPodium = currentPage === 1;
+  const top3 = showPodium ? users.slice(0, 3) : [];
+  
+  const tableUsers = showPodium ? currentUsers.slice(3) : currentUsers;
 
   return (
     <div className="flex-1 p-4 md:p-8 w-full max-w-[1440px] mx-auto flex flex-col min-h-screen">
@@ -137,7 +148,7 @@ export default function LeaderboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/50">
-                  {others.map((u) => {
+                  {tableUsers.map((u) => {
                     const isCurrentUser = currentUser && currentUser.id === u.local_user_id;
                     return (
                       <tr 
@@ -177,8 +188,14 @@ export default function LeaderboardPage() {
                       </tr>
                     );
                   })}
+                  {tableUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-on-surface-variant">
+                        No predictors found for this page.
+                      </td>
+                    </tr>
+                  )}
 
-                  {/* Force render current user if not in top 100 but present */}
                   {currentUser && !users.find(u => u.local_user_id === currentUser.id) && users.length > 0 && (
                     <>
                       <tr>
@@ -213,6 +230,30 @@ export default function LeaderboardPage() {
                 </tbody>
               </table>
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center px-6 py-4 border-t border-outline-variant bg-surface-container-low">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  className="px-4 py-2 bg-surface border border-outline-variant rounded font-body-sm text-on-surface disabled:opacity-50 hover:bg-surface-variant transition-colors flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                  Previous
+                </button>
+                <div className="font-mono-sm text-outline">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  className="px-4 py-2 bg-surface border border-outline-variant rounded font-body-sm text-on-surface disabled:opacity-50 hover:bg-surface-variant transition-colors flex items-center gap-2"
+                >
+                  Next
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+              </div>
+            )}
           </section>
         </>
       )}

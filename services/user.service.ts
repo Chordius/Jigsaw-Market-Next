@@ -3,7 +3,7 @@ import { fetchCentralBalance } from '@/lib/jigsawcoin';
 
 export async function getUserProfileService(localUserId: string) {
     const query = `
-        SELECT id, central_user_id, username, email, created_at
+        SELECT id, central_user_id, username, email, is_admin, created_at
         FROM local_users
         WHERE id = $1
     `;
@@ -16,7 +16,6 @@ export async function getUserProfileService(localUserId: string) {
 
     const user = result.rows[0];
 
-    // Fetch balance from central wallet
     const balanceData = await fetchCentralBalance(user.central_user_id);
 
     return {
@@ -24,6 +23,7 @@ export async function getUserProfileService(localUserId: string) {
         username: user.username,
         email: user.email,
         balance: balanceData?.balance ?? 0,
+        is_admin: !!user.is_admin,
         created_at: user.created_at,
     };
 }

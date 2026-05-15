@@ -8,7 +8,7 @@ export async function deductCentralPoints(globalUserId: string, amount: number, 
         `${CENTRAL_API_URL}/api/v1/wallet/transaction`,
         {
             global_user_id: globalUserId,
-            amount: -Math.abs(amount), // Ensure it is a deduction
+            amount: -Math.abs(amount),
             reference_id: localReferenceId,
         },
         {
@@ -77,7 +77,7 @@ export async function creditCentralPoints(globalUserId: string, amount: number, 
         `${CENTRAL_API_URL}/api/v1/wallet/transaction`,
         {
             global_user_id: globalUserId,
-            amount: Math.abs(amount), // Ensure it is a credit (positive)
+            amount: Math.abs(amount),
             reference_id: localReferenceId,
         },
         {
@@ -104,6 +104,21 @@ export async function fetchCentralBalance(globalUserId: string) {
 
     if (response.status === 404) throw new Error('User not found in central wallet');
     if (!response.data.success) throw new Error(response.data.message || 'Failed to fetch balance');
+
+    return response.data.payload;
+}
+
+export async function fetchCentralHistory(globalUserId: string) {
+    const response = await axios.get(
+        `${CENTRAL_API_URL}/api/v1/wallet/history/${globalUserId}`,
+        {
+            headers: { 'x-api-key': API_KEY },
+            validateStatus: (status) => status < 500,
+        }
+    );
+
+    if (response.status === 404) return [];
+    if (!response.data.success) throw new Error(response.data.message || 'Failed to fetch history');
 
     return response.data.payload;
 }

@@ -8,14 +8,15 @@ export default function Navbar() {
 
   return (
     <header className="w-full h-16 px-6 flex justify-between items-center border-b border-outline-variant bg-surface glass-panel sticky top-0 z-50">
-      <Link href="/" className="text-xl font-h1 text-on-surface tracking-tighter">
+      <Link href={user ? "/markets" : "/"} className="text-xl font-h1 text-on-surface tracking-tighter">
         Jigsaw
       </Link>
       <div className="flex items-center gap-4">
         {!loading && user ? (
           <>
             <div className="flex items-center gap-2 px-3 py-1 bg-surface-container-high rounded text-sm font-mono-md">
-              <span className="material-symbols-outlined text-[16px] text-primary">account_balance_wallet</span>
+              <span className="text-on-surface font-bold truncate max-w-[100px]">{user.username}</span>
+              <span className="material-symbols-outlined text-[16px] text-primary ml-1">account_balance_wallet</span>
               <span className="text-on-surface">{user.balance?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }).replace('$', '')} 🪙</span>
             </div>
             <Link href="/markets" className="text-label-caps text-on-surface-variant hover:text-primary transition-colors">

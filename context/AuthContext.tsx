@@ -9,6 +9,7 @@ interface User {
   username: string;
   email: string;
   balance?: number;
+  is_admin?: boolean;
 }
 
 interface AuthContextType {
@@ -35,7 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data } = await apiClient.get('/auth/session');
       if (data.success && data.payload?.user) {
-        // Now fetch fresh profile/balance
         const userProfileRes = await apiClient.get(`/users/${data.payload.user.id}`);
         if (userProfileRes.data.success) {
           setUser({ ...data.payload.user, ...userProfileRes.data.payload });
@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (userData: User) => {
     setUser(userData);
-    // After setting user, fetch their balance
     try {
       const userProfileRes = await apiClient.get(`/users/${userData.id}`);
       if (userProfileRes.data.success) {
