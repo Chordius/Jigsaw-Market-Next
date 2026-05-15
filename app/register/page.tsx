@@ -56,33 +56,22 @@ export default function RegisterPage() {
           
           <div className="relative z-10 max-w-lg w-full flex flex-col gap-6">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>hexagon</span>
-              <h1 className="font-h1 text-h1 text-on-surface tracking-tighter">Jigsaw Terminal</h1>
-            </div>
-            <div className="space-y-4">
-              <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-                  Advanced predictive modeling for high-stakes decision making. Join the network of quantitative analysts and market makers.
-              </p>
-              <div className="flex gap-4 pt-4">
-                <div className="flex flex-col gap-1 border-l-2 border-outline-variant pl-4">
-                  <span className="font-mono-md text-mono-md text-primary">System Status</span>
-                  <span className="font-mono-sm text-mono-sm text-on-surface-variant uppercase tracking-widest">Operational // V1.0.4</span>
-                </div>
-              </div>
+              <img src="/puzzle.png" alt="Jigsaw Market" className="w-10 h-10" style={{ filter: 'brightness(0) saturate(100%) invert(74%) sepia(60%) saturate(500%) hue-rotate(180deg) brightness(110%)' }} />
+              <h1 className="font-h1 text-h1 text-on-surface tracking-tighter">Jigsaw Market</h1>
             </div>
           </div>
         </div>
 
         <div className="flex-1 flex flex-col justify-center px-6 py-12 md:px-16 lg:px-24 bg-background relative overflow-y-auto pt-24 pb-24">
           <div className="md:hidden absolute top-6 left-6 flex items-center gap-2 mb-8">
-            <span className="material-symbols-outlined text-2xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>hexagon</span>
-            <span className="font-h3 text-h3 text-on-surface font-black tracking-tighter">Jigsaw</span>
+            <img src="/puzzle.png" alt="Jigsaw Market" className="w-6 h-6" style={{ filter: 'brightness(0) saturate(100%) invert(74%) sepia(60%) saturate(500%) hue-rotate(180deg) brightness(110%)' }} />
+            <span className="font-h3 text-h3 text-on-surface font-black tracking-tighter">Jigsaw Market</span>
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8 mt-12 md:mt-0">
             <div className="space-y-2">
-              <h2 className="font-h2 text-h2 text-on-surface">Buat Akun Baru</h2>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">Mulai prediksi dalam 30 detik</p>
+              <h2 className="font-h2 text-h2 text-on-surface">Create New Account</h2>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">Start predicting in 30 seconds</p>
             </div>
 
             {error && (
@@ -186,7 +175,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="text-sm">
                   <label className="font-body-sm text-body-sm text-on-surface-variant cursor-pointer" htmlFor="terms">
-                    Saya setuju dengan <a className="text-primary hover:text-primary-fixed underline decoration-primary/30 underline-offset-4 transition-colors" href="#">Syarat & Ketentuan</a>
+                    I agree to the <a className="text-primary hover:text-primary-fixed underline decoration-primary/30 underline-offset-4 transition-colors" href="#">Terms & Conditions</a>
                   </label>
                 </div>
               </div>
@@ -197,21 +186,21 @@ export default function RegisterPage() {
                   type="submit"
                   disabled={loading}
                 >
-                  {loading ? 'Membuat Akun...' : 'Buat Akun'}
+                  {loading ? 'Creating Account...' : 'Create Account'}
                 </button>
               </div>
             </form>
 
             <div className="text-center mt-8">
               <Link className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-1 group" href="/login">
-                Sudah punya akun? Masuk
+                Already have an account? Sign in
                 <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </Link>
             </div>
           </div>
 
           <div className="absolute bottom-6 left-0 right-0 text-center px-6">
-            <p className="font-mono-sm text-mono-sm text-outline-variant">© 2024 Jigsaw Terminal. Strict Access Protocol.</p>
+            <p className="font-mono-sm text-mono-sm text-outline-variant">© 2024 Jigsaw Market. Strict Access Protocol.</p>
           </div>
         </div>
       </div>

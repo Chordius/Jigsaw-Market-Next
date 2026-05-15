@@ -81,8 +81,7 @@ export default function MarketsDashboard() {
       {/* SideNavBar */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] p-4 bg-surface-container-low border-r border-outline-variant w-64 z-40">
         <div className="mb-8 px-4">
-          <div className="text-label-caps font-label-caps text-outline mb-2">Categories</div>
-          <div className="text-mono-sm text-on-surface-variant">Analytical Brutalism v1.0</div>
+          <div className="text-h3 font-h3 text-on-surface mb-2">Categories</div>
         </div>
         
         <nav className="flex-1 flex flex-col gap-1">

@@ -139,7 +139,13 @@ export default function MarketDetailPage() {
         setTradeMessage({ type: 'error', text: data.message || `${tradeMode} failed` });
       }
     } catch (err: any) {
-      setTradeMessage({ type: 'error', text: err.response?.data?.message || 'Trade execution error' });
+      const serverMessage = err.response?.data?.message;
+      const displayMessage = serverMessage
+        ? (serverMessage.toLowerCase().includes('insufficient balance')
+            ? `Insufficient balance. You need more Jigsaw Coins to complete this trade.`
+            : serverMessage)
+        : 'Trade execution failed. Please try again.';
+      setTradeMessage({ type: 'error', text: displayMessage });
     } finally {
       setTradeLoading(false);
     }

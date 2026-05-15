@@ -4,24 +4,32 @@ const CENTRAL_API_URL = process.env.CENTRAL_API_URL || 'http://localhost:3000';
 const API_KEY = process.env.CENTRAL_WALLET_API_KEY;
 
 export async function deductCentralPoints(globalUserId: string, amount: number, localReferenceId: string) {
-    const response = await axios.post(
-        `${CENTRAL_API_URL}/api/v1/wallet/transaction`,
-        {
-            global_user_id: globalUserId,
-            amount: -Math.abs(amount),
-            reference_id: localReferenceId,
-        },
-        {
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': API_KEY,
+    try {
+        const response = await axios.post(
+            `${CENTRAL_API_URL}/api/v1/wallet/transaction`,
+            {
+                global_user_id: globalUserId,
+                amount: -Math.abs(amount),
+                reference_id: localReferenceId,
             },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': API_KEY,
+                },
+            }
+        );
+
+        if (!response.data.success) throw new Error(response.data.message || 'Transaction failed');
+        return response.data.payload;
+    } catch (error: any) {
+        const msg = error.response?.data?.message || error.message || 'Transaction failed';
+        // Normalize common insufficient balance messages from Coin API
+        if (msg.toLowerCase().includes('insufficient') || msg.toLowerCase().includes('balance') || msg.toLowerCase().includes('not enough')) {
+            throw new Error('Insufficient balance. You need more Jigsaw Coins to complete this trade.');
         }
-    );
-
-    if (!response.data.success) throw new Error(response.data.message || 'Transaction failed');
-
-    return response.data.payload;
+        throw new Error(msg);
+    }
 }
 
 export async function lookupGlobalUser(email: string) {

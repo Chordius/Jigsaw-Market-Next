@@ -39,18 +39,17 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen -mt-16"> {/* Negative margin to offset navbar */}
       {/* Left Panel (40%) */}
-      <div className="hidden lg:flex w-[40%] bg-surface-container-lowest flex-col justify-between p-12 relative overflow-hidden border-r border-outline-variant">
-        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(172, 199, 255, 0.1) 0%, transparent 70%)' }}>
-          {/* Using a placeholder for the abstract chart image */}
-          <div className="w-full h-full bg-surface-container-lowest" />
+      <div className="hidden lg:flex w-[40%] bg-surface-container-lowest border-r border-outline-variant relative items-center justify-center p-12">
+        <div className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBeGG4cWb0WWg8tvMEE8sXQZGPw1879Dv8O7Qb53bfCijaHJeYVUutw-T8A8oh9_ARXtZ1eCpx_8rJZ9YXZ1AmypCZmcXuG2u6zIfbfpXv9YqQehJPHRlMwMY9pTdTta0pa9oo7x79ysZnqiz_EvcGfrhTtwPuiI7MW36dnUbNQU4DvoPWeG7d_CCT9CNlHaMoE7Ecq_4S_UMfIBTVUjkejzQo6y2yvNj4wwiR7v1k4wKa8nOl6ZsPhAnkOQKetclXQKmSDtrFCj1rJ')" }}>
         </div>
-        <div className="z-10">
-          <h1 className="font-h1 text-h1 text-on-surface tracking-tighter">Jigsaw</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-unit">Analytical Brutalism v1.0</p>
-        </div>
-        <div className="z-10">
-          <p className="font-h3 text-h3 text-on-surface max-w-sm">Financial Intelligence at the Edge.</p>
-          <p className="font-body-sm text-body-sm text-outline mt-unit*2 max-w-sm leading-relaxed">Execute trades with precision. Analyze sentiment in real-time. Dominate the market with unparalleled data density.</p>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background/50"></div>
+        
+        <div className="relative z-10 max-w-lg w-full flex flex-col gap-6">
+          <div className="flex items-center gap-3">
+            <img src="/puzzle.png" alt="Jigsaw Market" className="w-10 h-10" style={{ filter: 'brightness(0) saturate(100%) invert(74%) sepia(60%) saturate(500%) hue-rotate(180deg) brightness(110%)' }} />
+            <h1 className="font-h1 text-h1 text-on-surface tracking-tighter">Jigsaw Market</h1>
+          </div>
         </div>
       </div>
 
@@ -59,13 +58,13 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Header (Hidden on Desktop) */}
           <div className="lg:hidden mb-12 text-center">
-            <h1 className="font-h1 text-h1 text-on-surface tracking-tighter">Jigsaw</h1>
+            <h1 className="font-h1 text-h1 text-on-surface tracking-tighter">Jigsaw Market</h1>
           </div>
 
           {/* Header */}
           <div className="mb-8">
             <h2 className="font-h2 text-h2 text-on-surface">Welcome back</h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">Log in to your Jigsaw account</p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">Log in to your Jigsaw Market account</p>
           </div>
 
           {/* Error Banner */}

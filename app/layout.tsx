@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Jigsaw Terminal - Predict the Future",
+  title: "Jigsaw Market - Predict the Future",
   description: "Trade on the outcome of global events. Leverage your knowledge to build a portfolio of accurate predictions.",
 };
 

@@ -38,11 +38,19 @@ interface Order {
   market_title: string;
 }
 
+interface CoinHistory {
+  id: string;
+  amount: number;
+  reference_id: string;
+  created_at: string;
+}
+
 export default function PortfolioPage() {
   const { user } = useAuth();
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [coinHistory, setCoinHistory] = useState<CoinHistory[]>([]);
   const [activeTab, setActiveTab] = useState<'positions' | 'wins' | 'history'>('positions');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,21 +63,17 @@ export default function PortfolioPage() {
       }
       
       try {
-        const [holdingsRes, payoutsRes, ordersRes] = await Promise.all([
+        const [holdingsRes, payoutsRes, ordersRes, coinHistRes] = await Promise.all([
           apiClient.get(`/holdings/${user.id}`),
           apiClient.get(`/users/${user.id}/payouts`),
-          apiClient.get(`/users/${user.id}/orders`)
+          apiClient.get(`/users/${user.id}/orders`),
+          apiClient.get(`/users/${user.id}/coin-history`)
         ]);
 
-        if (holdingsRes.data.success) {
-          setHoldings(holdingsRes.data.payload);
-        }
-        if (payoutsRes.data.success) {
-          setPayouts(payoutsRes.data.payload);
-        }
-        if (ordersRes.data.success) {
-          setOrders(ordersRes.data.payload);
-        }
+        if (holdingsRes.data.success) setHoldings(holdingsRes.data.payload);
+        if (payoutsRes.data.success) setPayouts(payoutsRes.data.payload);
+        if (ordersRes.data.success) setOrders(ordersRes.data.payload);
+        if (coinHistRes.data.success) setCoinHistory(coinHistRes.data.payload);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch portfolio');
       } finally {
@@ -142,7 +146,7 @@ export default function PortfolioPage() {
           [
             { key: 'positions', label: 'Active Positions', icon: 'bar_chart', count: holdings.length },
             { key: 'wins',      label: 'Recent Wins',      icon: 'military_tech', count: payouts.length },
-            { key: 'history',   label: 'Transaction History', icon: 'receipt_long', count: orders.length },
+            { key: 'history',   label: 'Transaction History', icon: 'receipt_long', count: orders.length + coinHistory.filter(h => h.reference_id.startsWith('Daily')).length },
           ] as const
         ).map((tab) => (
           <button
@@ -318,6 +322,7 @@ export default function PortfolioPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
+                {/* Trade orders */}
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-surface-container-lowest transition-colors">
                     <td className="p-4 font-mono-sm text-outline whitespace-nowrap">
@@ -353,6 +358,33 @@ export default function PortfolioPage() {
                       order.order_type === 'BUY' ? 'text-error' : 'text-secondary'
                     }`}>
                       {order.order_type === 'BUY' ? '-' : '+'}🪙 {Number(order.total_cost).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+                {/* Daily gift / central wallet events */}
+                {coinHistory
+                  .filter(h => h.reference_id?.startsWith('Daily'))
+                  .map((h) => (
+                  <tr key={h.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <td className="p-4 font-mono-sm text-outline whitespace-nowrap">
+                      {new Date(h.created_at).toLocaleDateString()}
+                      <div className="text-xs text-on-surface-variant">{new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="inline-block font-label-caps px-2 py-1 rounded bg-[#FACC15]/10 border border-[#FACC15] text-[#FACC15]">
+                        GIFT
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="text-outline font-mono-sm">—</span>
+                    </td>
+                    <td className="p-4 font-body-sm text-on-surface-variant">
+                      {h.reference_id}
+                    </td>
+                    <td className="p-4 text-right font-mono-sm text-outline">—</td>
+                    <td className="p-4 text-right font-mono-sm text-outline">—</td>
+                    <td className="p-4 text-right font-mono-md font-bold text-[#FACC15]">
+                      +🪙 {Number(h.amount).toFixed(2)}
                     </td>
                   </tr>
                 ))}

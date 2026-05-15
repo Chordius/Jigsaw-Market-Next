@@ -8,8 +8,9 @@ export default function Navbar() {
 
   return (
     <header className="w-full h-16 px-6 flex justify-between items-center border-b border-outline-variant bg-surface glass-panel sticky top-0 z-50">
-      <Link href={user ? "/markets" : "/"} className="text-xl font-h1 text-on-surface tracking-tighter">
-        Jigsaw
+      <Link href={user ? "/markets" : "/"} className="flex items-center gap-2 text-xl font-h1 text-on-surface tracking-tighter">
+        <img src="/puzzle.png" alt="Jigsaw Market" className="w-7 h-7" style={{ filter: 'brightness(0) saturate(100%) invert(74%) sepia(60%) saturate(500%) hue-rotate(180deg) brightness(110%)' }} />
+        Jigsaw Market
       </Link>
       <div className="flex items-center gap-4">
         {!loading && user ? (
