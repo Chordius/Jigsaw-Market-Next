@@ -3,9 +3,17 @@ import { baseResponse } from '@/lib/base_response';
 import { loginUserService } from '@/services/auth.service';
 import { createSession } from '@/lib/auth';
 import { fetchCentralHistory, creditCentralPoints } from '@/lib/jigsawcoin';
+import { authRateLimit } from '@/lib/ratelimit';
 
 export async function POST(request: Request) {
     try {
+        const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
+        const { success } = await authRateLimit.limit(ip);
+        
+        if (!success) {
+            return NextResponse.json(baseResponse(false, 'Too many login attempts. Please try again later.', null), { status: 429 });
+        }
+
         const { email, password } = await request.json();
 
         if (!email || !password) {

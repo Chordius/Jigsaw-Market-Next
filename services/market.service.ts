@@ -284,6 +284,21 @@ export async function resolveMarketService(
 
         await client.query('COMMIT');
 
+        if (winnersRes.rows.length > 0 && process.env.QSTASH_TOKEN) {
+            try {
+                const { Client } = await import("@upstash/qstash");
+                const qstashClient = new Client({ token: process.env.QSTASH_TOKEN });
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+                await qstashClient.publishJSON({
+                    url: `${baseUrl}/api/settlements/process`,
+                    body: { limit: 50 },
+                });
+                console.log(`[QStash] Payout triggered for market ${marketId}`);
+            } catch (err) {
+                console.error("[QStash] Failed to trigger payout", err);
+            }
+        }
+
         return {
             marketId,
             settlement_id: settlementId,
