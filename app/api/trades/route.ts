@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { localUserId, centralUserId, marketId, outcomeType, sharesToBuy, sharesToSell, action } = body;
 
-    // Cek Rate Limit per Akun (hindari spam transaksi)
+    // Check rate limit per account (prevent transaction spam)
     if (localUserId) {
       const { success } = await tradeRateLimit.limit(localUserId);
       if (!success) {
