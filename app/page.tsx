@@ -17,16 +17,16 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-4">
             <Link href="/register" className="bg-primary text-background font-body-md font-bold px-6 py-3 rounded bloom-green transition-all flex items-center gap-2">
-              Mulai Sekarang
+              Get Started
               <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
             </Link>
             <Link href="/markets" className="bg-transparent border border-outline text-on-surface-variant font-body-md font-bold px-6 py-3 rounded hover:border-primary hover:text-primary transition-all">
-              Lihat Markets
+              View Markets
             </Link>
           </div>
           <p className="text-body-sm font-body-sm text-outline pt-2 flex items-center gap-2">
             <span className="material-symbols-outlined text-[16px]">info</span>
-            Gratis. Menggunakan Jigsaw Coins virtual. Tidak ada uang nyata.
+            Free. Uses virtual Jigsaw Coins. No real money involved.
           </p>
         </div>
 
@@ -65,8 +65,8 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <button className="bg-surface-container-high border border-outline-variant text-secondary font-mono-md py-3 rounded bloom-green hover:bg-secondary/10 transition-colors">BUY YES</button>
-              <button className="bg-surface-container-high border border-outline-variant text-tertiary-container font-mono-md py-3 rounded bloom-red hover:bg-tertiary-container/10 transition-colors">BUY NO</button>
+              <Link href="/markets" className="bg-surface-container-high border border-outline-variant text-secondary font-mono-md py-3 rounded bloom-green hover:bg-secondary/10 transition-colors text-center">BUY YES</Link>
+              <Link href="/markets" className="bg-surface-container-high border border-outline-variant text-tertiary-container font-mono-md py-3 rounded bloom-red hover:bg-tertiary-container/10 transition-colors text-center">BUY NO</Link>
             </div>
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-surface-container-highest rounded flex items-center justify-center mb-6">
                 <span className="text-mono-lg font-mono-lg text-primary">01</span>
               </div>
-              <h3 className="text-h3 font-h3 text-on-surface mb-2">Pilih Market</h3>
+              <h3 className="text-h3 font-h3 text-on-surface mb-2">Select a Market</h3>
               <p className="text-body-sm font-body-sm text-on-surface-variant">Browse thousands of global events across politics, sports, crypto, and technology.</p>
             </div>
             {/* Card 2 */}
@@ -99,7 +99,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-surface-container-highest rounded flex items-center justify-center mb-6">
                 <span className="text-mono-lg font-mono-lg text-primary">02</span>
               </div>
-              <h3 className="text-h3 font-h3 text-on-surface mb-2">Beli Saham</h3>
+              <h3 className="text-h3 font-h3 text-on-surface mb-2">Buy Shares</h3>
               <p className="text-body-sm font-body-sm text-on-surface-variant">Purchase YES or NO shares based on your analysis. Prices reflect market probability.</p>
             </div>
             {/* Card 3 */}
@@ -110,7 +110,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-surface-container-highest rounded flex items-center justify-center mb-6">
                 <span className="text-mono-lg font-mono-lg text-primary">03</span>
               </div>
-              <h3 className="text-h3 font-h3 text-on-surface mb-2">Ikuti Pergerakan Harga</h3>
+              <h3 className="text-h3 font-h3 text-on-surface mb-2">Track Price Movements</h3>
               <p className="text-body-sm font-body-sm text-on-surface-variant">Watch the market react to news in real-time. Sell early for profit or hold to resolution.</p>
             </div>
           </div>
@@ -143,9 +143,9 @@ export default function LandingPage() {
 
       {/* Final CTA */}
       <section className="max-w-[1440px] mx-auto px-4 md:px-8 py-32 text-center flex flex-col items-center">
-        <h2 className="text-h1 font-h1 text-on-surface mb-8 max-w-2xl">Siap membuat prediksi pertamamu?</h2>
+        <h2 className="text-h1 font-h1 text-on-surface mb-8 max-w-2xl">Ready to make your first prediction?</h2>
         <Link href="/register" className="bg-primary text-background font-body-md font-bold px-8 py-4 rounded-lg bloom-green transition-all shadow-[0_0_20px_rgba(172,199,255,0.2)] hover:shadow-[0_0_30px_rgba(172,199,255,0.4)]">
-          Daftar Sekarang — Gratis
+          Register Now — It's Free
         </Link>
       </section>
     </>

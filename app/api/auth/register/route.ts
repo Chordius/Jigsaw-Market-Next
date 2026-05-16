@@ -13,7 +13,6 @@ export async function POST(request: Request) {
 
         const newUser = await registerUserService(username, email, password);
         
-        // Create HTTP-only JWT session
         await createSession({
             id: newUser.id,
             central_user_id: newUser.central_user_id,

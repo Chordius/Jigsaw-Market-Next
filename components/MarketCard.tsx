@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export interface Market {
   id: string;
@@ -12,6 +14,9 @@ export interface Market {
   total_invested: number;
   price_yes: number;
   price_no: number;
+  liquidity_yes: string;
+  liquidity_no: string;
+  created_at: string;
 }
 
 const categoryIcons: Record<string, string> = {
@@ -20,13 +25,26 @@ const categoryIcons: Record<string, string> = {
   sports: 'sports_basketball',
   tech: 'memory',
   entertainment: 'movie',
-  climate: 'thermostat',
+  academics: 'school',
+  economy: 'monitoring',
+  others: 'category'
 };
 
 export default function MarketCard({ market }: { market: Market }) {
   const icon = categoryIcons[market.category?.toLowerCase()] || 'category';
-  const yesProb = Math.round(market.price_yes * 100) || 50;
-  const noProb = Math.round(market.price_no * 100) || 50;
+  const yesProb = Number(market.price_yes) || 5;
+  const noProb = Number(market.price_no) || 5;
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const handleTradeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) {
+      router.push('/login');
+    } else {
+      router.push(`/markets/${market.id}`);
+    }
+  };
 
   return (
     <div className="group relative bg-surface border border-outline-variant p-4 rounded-lg flex flex-col gap-4 overflow-hidden transition-all hover:border-outline h-full">
@@ -46,27 +64,27 @@ export default function MarketCard({ market }: { market: Market }) {
       
       <div className="mt-auto pt-4 flex flex-col gap-2">
         <div className="flex justify-between font-mono-md text-mono-md">
-          <span className="text-secondary">YES {yesProb}¢</span>
-          <span className="text-error">NO {noProb}¢</span>
+          <span className="text-secondary">YES {yesProb.toFixed(2)} 🪙</span>
+          <span className="text-error">NO {noProb.toFixed(2)} 🪙</span>
         </div>
         
         {/* Probability Bar */}
         <div className="h-1.5 w-full bg-outline-variant rounded-full overflow-hidden flex">
-          <div className="h-full bg-secondary" style={{ width: `${yesProb}%` }}></div>
-          <div className="h-full bg-error" style={{ width: `${noProb}%` }}></div>
+          <div className="h-full bg-secondary" style={{ width: `${(yesProb / 10) * 100}%` }}></div>
+          <div className="h-full bg-error" style={{ width: `${(noProb / 10) * 100}%` }}></div>
         </div>
         
         <div className="flex justify-between text-mono-sm text-outline-variant mt-1">
-          <span>{market.total_invested?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }).replace('$', '')} 🪙</span>
+          <span>{Number(market.total_invested || 0).toFixed(2)} 🪙</span>
           <span>Ends: {new Date(market.end_date).toISOString().split('T')[0]}</span>
         </div>
       </div>
       
       {/* Hover Actions Overlay */}
       <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <Link href={`/markets/${market.id}`} className="bg-primary text-background font-h3 text-h3 px-6 py-2 rounded bloom-green transition-all shadow-[0_0_15px_rgba(172,199,255,0.2)]">
+        <button onClick={handleTradeClick} className="bg-primary text-background font-h3 text-h3 px-6 py-2 rounded bloom-green transition-all shadow-[0_0_15px_rgba(172,199,255,0.2)]">
           TRADE NOW
-        </Link>
+        </button>
       </div>
     </div>
   );

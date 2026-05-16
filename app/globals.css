@@ -28,8 +28,8 @@
 }
 
 @layer utilities {
-  .bloom-green:hover { box-shadow: 0 0 12px rgba(74, 225, 118, 0.2); }
-  .bloom-red:hover { box-shadow: 0 0 12px rgba(255, 84, 81, 0.2); }
+  .bloom-green:hover { @apply shadow-bloom-green; }
+  .bloom-red:hover { @apply shadow-bloom-red; }
   .glass-panel {
     background: rgba(16, 20, 28, 0.7);
     backdrop-filter: blur(12px);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import MarketCard, { Market } from '@/components/MarketCard';
 import { useAuth } from '@/context/AuthContext';
@@ -9,22 +10,36 @@ import CreateMarketModal from '@/components/CreateMarketModal';
 const categories = [
   { id: "Politics", label: 'Politics', icon: 'policy' },
   { id: "Sports", label: 'Sports', icon: 'sports_basketball' },
-  { id: "Crypto", label: 'Crypto', icon: 'currency_bitcoin' },
+  { id: "Academics", label: 'Academics', icon: 'school' },
+  { id: "Economy", label: 'Economy', icon: 'monitoring' },
   { id: "Tech", label: 'Tech', icon: 'memory' },
   { id: "Entertainment", label: 'Entertainment', icon: 'movie' },
-  { id: "Climate", label: 'Climate', icon: 'thermostat' },
+  { id: "Others", label: 'Others', icon: 'category' }
 ];
 
 export default function MarketsDashboard() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [sortBy, setSortBy] = useState('popularity'); // popularity, ends_by, created_at
+  // Filters from URL
+  const searchQuery = searchParams.get('search') || '';
+  const selectedCategory = searchParams.get('category') || '';
+  const sortBy = searchParams.get('sort') || 'popularity';
+
+  const updateUrlParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    router.push(`?${params.toString()}`);
+  };
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,7 +87,7 @@ export default function MarketsDashboard() {
         
         <nav className="flex-1 flex flex-col gap-1">
           <button 
-            onClick={() => setSelectedCategory('')}
+            onClick={() => updateUrlParams('category', '')}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-100 ${
               selectedCategory === '' 
                 ? 'bg-secondary-container text-on-secondary-container' 
@@ -86,7 +101,7 @@ export default function MarketsDashboard() {
           {categories.map((cat) => (
             <button 
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => updateUrlParams('category', cat.id)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-100 ${
                 selectedCategory === cat.id 
                   ? 'bg-secondary-container text-on-secondary-container' 
@@ -109,10 +124,10 @@ export default function MarketsDashboard() {
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
               <input 
                 className="w-full bg-surface border border-outline-variant rounded-DEFAULT py-3 pl-12 pr-4 text-on-surface font-body-md focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-outline-variant" 
-                placeholder="Cari market berdasarkan kata kunci..." 
+                placeholder="Search markets by keyword..." 
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => updateUrlParams('search', e.target.value)}
               />
             </div>
             {user && (
@@ -120,25 +135,25 @@ export default function MarketsDashboard() {
                 onClick={() => setIsModalOpen(true)}
                 className="bg-primary text-background font-bold px-6 py-3 rounded hover:bg-primary-fixed transition-colors whitespace-nowrap"
               >
-                + Buat Market
+                + Create Market
               </button>
             )}
           </div>
           
           <div className="flex justify-between items-center">
             <div className="font-mono-sm text-outline">
-              Menampilkan {filteredMarkets.length} markets terbuka
+              Showing {filteredMarkets.length} open markets
             </div>
             <div className="flex items-center gap-2">
               <span className="font-label-caps text-outline">SORT:</span>
               <select 
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => updateUrlParams('sort', e.target.value)}
                 className="bg-surface border border-outline-variant rounded py-1 px-2 text-on-surface font-mono-sm focus:border-primary focus:outline-none appearance-none"
               >
                 <option value="popularity">Popularity (High-Low)</option>
-                <option value="ends_by">Berakhir Segera</option>
-                <option value="created_at">Terbaru</option>
+                <option value="ends_by">Ending Soon</option>
+                <option value="created_at">Newest</option>
               </select>
             </div>
           </div>
@@ -157,8 +172,8 @@ export default function MarketsDashboard() {
         ) : filteredMarkets.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-outline-variant rounded-lg">
             <span className="material-symbols-outlined text-4xl text-outline mb-4">search_off</span>
-            <h3 className="font-h3 text-on-surface">Tidak ada market yang ditemukan</h3>
-            <p className="text-on-surface-variant font-body-sm mt-2">Coba ganti filter kategori atau kata kunci pencarian.</p>
+            <h3 className="font-h3 text-on-surface">No markets found</h3>
+            <p className="text-on-surface-variant font-body-sm mt-2">Try changing category filters or search keywords.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

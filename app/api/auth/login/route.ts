@@ -9,12 +9,12 @@ export async function POST(request: Request) {
         // Ekstrak IP Address untuk Rate Limiting
         const forwardedFor = request.headers.get('x-forwarded-for');
         const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
-        
+
         // Cek Rate Limit
         const { success } = await authRateLimit.limit(ip);
         if (!success) {
             return NextResponse.json(
-                baseResponse(false, 'Terlalu banyak percobaan login. Silakan tunggu 1 menit.', null), 
+                baseResponse(false, 'Terlalu banyak percobaan login. Silakan tunggu 1 menit.', null),
                 { status: 429 }
             );
         }
@@ -26,8 +26,7 @@ export async function POST(request: Request) {
         }
 
         const user = await loginUserService(email, password);
-        
-        // Create HTTP-only JWT session
+
         await createSession({
             id: user.id,
             central_user_id: user.central_user_id,
@@ -36,8 +35,9 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json(baseResponse(true, 'Login successful', { user }), { status: 200 });
-    } catch (error: any) {
-        console.error('Login Error:', error.message);
-        return NextResponse.json(baseResponse(false, error.message, null), { status: 401 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Login failed';
+        console.error('Login Error:', message);
+        return NextResponse.json(baseResponse(false, message, null), { status: 401 });
     }
 }
