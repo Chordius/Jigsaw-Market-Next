@@ -8,7 +8,7 @@ export default function Footer() {
         <Link className="text-label-sm font-label text-outline hover:text-primary opacity-80 transition-colors" href="https://github.com/Chordius/Jigsaw-Market-Next" target="_blank">GitHub</Link>
         <Link className="text-label-sm font-label text-outline hover:text-primary opacity-80 transition-colors" href="https://github.com/Chordius/Jigsaw-Coin-API" target="_blank">API</Link>
       </div>
-      <div className="text-label-sm font-label text-outline">© 2024 Jigsaw Market</div>
+      <div className="text-label-sm font-label text-outline">© 2026 Jigsaw Market</div>
     </footer>
   );
 }

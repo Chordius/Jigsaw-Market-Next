@@ -63,22 +63,28 @@ export default function PortfolioPage() {
       }
       
       try {
-        const [holdingsRes, payoutsRes, ordersRes, coinHistRes] = await Promise.all([
+        const [holdingsRes, payoutsRes, ordersRes] = await Promise.all([
           apiClient.get(`/holdings/${user.id}`),
           apiClient.get(`/users/${user.id}/payouts`),
           apiClient.get(`/users/${user.id}/orders`),
-          apiClient.get(`/users/${user.id}/coin-history`)
         ]);
 
         if (holdingsRes.data.success) setHoldings(holdingsRes.data.payload);
         if (payoutsRes.data.success) setPayouts(payoutsRes.data.payload);
         if (ordersRes.data.success) setOrders(ordersRes.data.payload);
-        if (coinHistRes.data.success) setCoinHistory(coinHistRes.data.payload);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch portfolio');
-      } finally {
-        setLoading(false);
       }
+
+      // Fetch coin history separately — if Coin API is offline this won't break the rest
+      try {
+        const coinHistRes = await apiClient.get(`/users/${user.id}/coin-history`);
+        if (coinHistRes.data.success) setCoinHistory(coinHistRes.data.payload);
+      } catch (_) {
+        // Silently ignore — coin history is non-critical
+      }
+
+      setLoading(false);
     };
 
     fetchData();

@@ -9,7 +9,10 @@ export async function getUserHoldingsService(localUserId: string) {
                 h.id AS holding_id,
                 h.market_id,
                 m.title AS market_title,
-                m.status AS market_status,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END AS market_status,
                 h.outcome_type,
                 h.shares_amount,
                 h.average_buy_price,

@@ -10,18 +10,23 @@ export async function GET(
   try {
     const { userId } = params;
 
-    // Get central_user_id from local DB
     const userRes = await pool.query(
       'SELECT central_user_id FROM local_users WHERE id = $1',
       [userId]
     );
 
     if (userRes.rows.length === 0) {
-      return NextResponse.json(baseResponse(false, 'User not found', null), { status: 404 });
+      return NextResponse.json(baseResponse(true, 'No coin history', []), { status: 200 });
     }
 
     const centralUserId = userRes.rows[0].central_user_id;
-    const history = await fetchCentralHistory(centralUserId);
+
+    let history: any[] = [];
+    try {
+      history = await fetchCentralHistory(centralUserId);
+    } catch (coinErr: any) {
+      console.warn('Could not fetch central history (Coin API may be offline):', coinErr.message);
+    }
 
     return NextResponse.json(baseResponse(true, 'Coin history fetched', history));
   } catch (error: any) {

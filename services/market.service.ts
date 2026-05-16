@@ -80,7 +80,10 @@ export async function getOpenMarketsService(options?: {
                 m.title,
                 m.category,
                 m.end_date,
-                m.status,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END as status,
                 m.description,
                 m.resolved_outcome,
                 m.liquidity_yes,
@@ -91,7 +94,12 @@ export async function getOpenMarketsService(options?: {
                     COALESCE((SELECT SUM(total_cost) FROM local_orders WHERE market_id = m.id AND order_type = 'SELL'), 0)
                 ) AS total_invested
             FROM markets m
-            WHERE ($1::text IS NULL OR m.status = $1)
+            WHERE ($1::text IS NULL OR 
+                (CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END) = $1
+            )
             AND ($2::text IS NULL OR m.category = $2)
             GROUP BY m.id
             ORDER BY ${sortColumn} ${sortDirection}, m.created_at DESC
@@ -115,7 +123,10 @@ export async function getMarketByIdService(marketId: string) {
                 m.description,
                 m.category,
                 m.end_date,
-                m.status,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END as status,
                 m.resolved_outcome,
                 m.liquidity_yes,
                 m.liquidity_no,
@@ -172,7 +183,10 @@ export async function getMarketLeaderboardService(options?: {
                 m.title,
                 m.category,
                 m.end_date,
-                m.status,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END as status,
                 m.description,
                 m.resolved_outcome,
                 m.liquidity_yes,
@@ -181,7 +195,12 @@ export async function getMarketLeaderboardService(options?: {
                 COALESCE(SUM(lo.total_cost) FILTER (WHERE lo.order_type = 'BUY'), 0) AS total_invested
             FROM markets m
             LEFT JOIN local_orders lo ON lo.market_id = m.id
-            WHERE ($1::text IS NULL OR m.status = $1)
+            WHERE ($1::text IS NULL OR 
+                (CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END) = $1
+            )
             GROUP BY m.id
             ORDER BY total_invested DESC, investor_count DESC, m.created_at DESC
             LIMIT $2
