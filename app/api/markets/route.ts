@@ -67,8 +67,27 @@ export async function POST(request: Request) {
             typeof description === 'string' ? description.trim() : undefined
         );
 
-        // TODO (Rasya): Buat scheduler menggunakan upstash Redis or anything along those lines
-        // biar kita bisa nge-trigger market/[id]/resolve nantinya.
+        const qstashToken = process.env.QSTASH_TOKEN;
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        
+        if (qstashToken) {
+            const resolveUrl = `${appUrl}/api/markets/resolve`;
+            const exactTimestamp = Math.floor(parsedEndDate.getTime() / 1000);
+            
+            try {
+                await fetch(`https://qstash.upstash.io/v2/publish/${resolveUrl}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${qstashToken}`,
+                        'Content-Type': 'application/json',
+                        'Upstash-Not-Before': exactTimestamp.toString()
+                    },
+                    body: JSON.stringify({ marketId: newMarket.id })
+                });
+            } catch (err) {
+                console.error("Failed to schedule market resolution with QStash", err);
+            }
+        }
 
         return NextResponse.json(
             baseResponse(true, 'Market created successfully', newMarket),
