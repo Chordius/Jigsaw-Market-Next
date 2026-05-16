@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       const { success } = await tradeRateLimit.limit(localUserId);
       if (!success) {
         return NextResponse.json(
-          baseResponse(false, 'Terlalu banyak request. Harap tunggu sebentar sebelum transaksi lagi.', null),
+          baseResponse(false, 'Too many requests. Please wait before making another transaction.', null),
           { status: 429 }
         );
       }

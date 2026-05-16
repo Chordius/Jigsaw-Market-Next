@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         const { success } = await authRateLimit.limit(ip);
         if (!success) {
             return NextResponse.json(
-                baseResponse(false, 'Terlalu banyak percobaan login. Silakan tunggu 1 menit.', null),
+                baseResponse(false, 'Too many login attempts. Please wait 1 minute before trying again.', null),
                 { status: 429 }
             );
         }
