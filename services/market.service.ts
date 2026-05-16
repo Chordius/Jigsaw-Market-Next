@@ -260,6 +260,28 @@ export async function resolveMarketService(
 
         await client.query('COMMIT');
 
+        // [Phase 3] Trigger QStash untuk proses Queueing Payout
+        const qstashToken = process.env.QSTASH_TOKEN;
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const apiKey = process.env.MARKET_RESOLUTION_API_KEY || '';
+
+        if (qstashToken && winnersRes.rows.length > 0) {
+            const processUrl = `${appUrl}/api/settlements/process`;
+            try {
+                await fetch(`https://qstash.upstash.io/v2/publish/${processUrl}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${qstashToken}`,
+                        'Content-Type': 'application/json',
+                        'x-resolution-key': apiKey,
+                    },
+                    body: JSON.stringify({ limit: 50 })
+                });
+            } catch (err) {
+                console.error("Failed to trigger settlement queue", err);
+            }
+        }
+
         return {
             marketId,
             settlement_id: settlementId,

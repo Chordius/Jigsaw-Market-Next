@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { baseResponse } from '@/lib/base_response';
 import { getMarketLeaderboardService } from '@/services/market.service';
+import { redis } from '@/lib/redis';
 
 export async function GET(request: Request) {
     try {
@@ -15,10 +16,18 @@ export async function GET(request: Request) {
             ? statusParam
             : undefined;
 
-        const leaderboard = await getMarketLeaderboardService({
-            limit,
-            status,
-        });
+        // Pattern Cache-Aside Redis
+        const cacheKey = `cache:market-leaderboard:${status || 'OPEN'}:${limit}`;
+        let leaderboard = await redis.get(cacheKey);
+
+        if (!leaderboard) {
+            leaderboard = await getMarketLeaderboardService({
+                limit,
+                status,
+            });
+            // Simpan ke cahe selama 5 menite (300 detik)
+            await redis.set(cacheKey, JSON.stringify(leaderboard), { ex: 300 });
+        }
 
         return NextResponse.json(
             baseResponse(true, 'Successfully fetched market leaderboard', leaderboard),

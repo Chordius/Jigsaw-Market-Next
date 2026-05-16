@@ -29,7 +29,7 @@ export default function CreateMarketModal({ isOpen, onClose, onSuccess }: Create
         title,
         description,
         category,
-        end_date: new Date(endDate).toISOString(),
+        endDate: new Date(endDate).toISOString(),
       });
 
       if (data.success) {
