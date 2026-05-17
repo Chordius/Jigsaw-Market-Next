@@ -1,4 +1,5 @@
 import { pool } from '@/lib/db';
+import { calculatePrices } from '@/services/market.service';
 
 export async function getUserHoldingsService(localUserId: string) {
     const client = await pool.connect();
@@ -27,15 +28,10 @@ export async function getUserHoldingsService(localUserId: string) {
         );
 
         const portfolio = result.rows.map(row => {
-            const lYes = parseFloat(row.liquidity_yes);
-            const lNo = parseFloat(row.liquidity_no);
-            const totalLiquidity = lYes + lNo;
-            
+            const prices = calculatePrices(row.liquidity_yes, row.liquidity_no);
             let currentPrice = 5.0;
-            if (totalLiquidity > 0) {
-                currentPrice = row.outcome_type === 'YES' 
-                    ? (lYes / totalLiquidity) * 10
-                    : (lNo / totalLiquidity) * 10;
+            if (prices) {
+                currentPrice = row.outcome_type === 'YES' ? prices.price_yes : prices.price_no;
             }
 
             const totalInvested = parseFloat(row.average_buy_price) * parseFloat(row.shares_amount);

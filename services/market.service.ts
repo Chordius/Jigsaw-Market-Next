@@ -11,7 +11,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 // Helper function to calculate AMM Price
-const calculatePrices = (liquidityYes: string, liquidityNo: string) => {
+export const calculatePrices = (liquidityYes: string, liquidityNo: string) => {
     const qYes = parseFloat(liquidityYes);
     const qNo = parseFloat(liquidityNo);
     
@@ -314,7 +314,8 @@ export async function resolveMarketService(
             try {
                 const { Client } = await import("@upstash/qstash");
                 const qstashClient = new Client({ token: process.env.QSTASH_TOKEN });
-                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+                const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+                const baseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
                 await qstashClient.publishJSON({
                     url: `${baseUrl}/api/settlements/process`,
                     body: { limit: 50 },
