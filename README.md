@@ -1,4 +1,4 @@
-# Jigsaw Market
+# 🧩 Jigsaw Market
 
 > Jigsaw Market is a full-stack prediction market platform built with Next.js + PostgreSQL. Users can buy/sell YES/NO shares on real-world event outcomes using virtual Jigsaw Coins.
 
@@ -25,25 +25,25 @@ This project consists of two separate services:
 | Service | Description | Default Port |
 |---|---|---|
 | **Jigsaw Coin API** (Express.js) | Central wallet — manages user balance & global auth | `3000` |
-| **Jigsaw Market** (Next.js) | Main prediction market app — AMM trading, markets, portfolio | `3001` |
+| **Jigsaw Market** (Next.js) | Main prediction market app — AMM trading, markets, portfolio, leaderboard | `3001` |
 
-Both services share **PostgreSQL** databases (separate schemas) and communicate via internal API calls authenticated with a shared API key.
+Both services share PostgreSQL databases (separate schemas) and communicate via internal API calls authenticated with a shared API key.
 
 ---
 
-## Diagrams
+## 📊 Diagrams
 
-### UML
+### UML - Use Case
+![jigsaw market UML](<docs/finpro sbd-Page-4.drawio.png>)
+### ERD — Entity Relationship Diagram
+#### Jigsaw Market Database
+![jigsaw market ERD](<docs/finpro sbd-Page-1.drawio.png>)
 
-### ERD
-#### Jigsaw Market ERD
-![jigsaw market ERD](<finpro sbd.drawio.png>)
+#### Jigsaw Coin API Database
+![jigsaw coin erd](<docs/finpro sbd-Page-2.jpg>)
 
-#### Jigsaw Coin API ERD
-![jigsaw coin erd](<finpro sbd-Page-2.jpg>)
-
-### FLowchart
-
+### Flowchart - User Activity Flow
+![Flow chart](<docs/finpro sbd-Page-3.drawio (2).png>)
 ---
 
 ## 📦 Prerequisites
@@ -55,119 +55,28 @@ Both services share **PostgreSQL** databases (separate schemas) and communicate 
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Installation Guide
 
 ### 1. Clone both repositories
 
 ```bash
-# Main prediction market app
+# Main Jigsaw market app
 git clone https://github.com/Chordius/Jigsaw-Market-Next.git
 cd Jigsaw-Market-Next
 
-# Central coin/wallet API (in a separate terminal/folder)
+# Central coin API
 git clone https://github.com/Chordius/Jigsaw-Coin-API.git
 cd Jigsaw-Coin-API
 ```
 
 ### 2. Install dependencies
-
+Run npm install to install all dependencies
 ```bash
 # In Jigsaw-Market-Next/
 npm install
 
 # In Jigsaw-Coin-API/
 npm install
-```
-
----
-
-## 🐘 PostgreSQL Configuration
-
-### Jigsaw Coin API Database
-
-The Coin API uses its own PostgreSQL database to store global users and wallet transactions. Run the migration/initialization SQL provided in the `Jigsaw-Coin-API` repository to create the required tables.
-
-### Jigsaw Market Next Database
-
-Create a separate PostgreSQL database for the market application and run the following schema:
-
-```sql
--- Local users (mirroring global auth from Coin API)
-CREATE TABLE local_users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    central_user_id UUID NOT NULL UNIQUE,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    last_login_reward DATE,
-    is_admin BOOLEAN DEFAULT FALSE
-);
-
--- Prediction markets
-CREATE TABLE markets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title VARCHAR(500) NOT NULL,
-    description TEXT,
-    category VARCHAR(50),
-    status VARCHAR(20) DEFAULT 'OPEN',
-    liquidity_yes DECIMAL DEFAULT 100,
-    liquidity_no DECIMAL DEFAULT 100,
-    end_date TIMESTAMPTZ NOT NULL,
-    created_by UUID REFERENCES local_users(id),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- User share holdings
-CREATE TABLE holdings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    local_user_id UUID REFERENCES local_users(id),
-    market_id UUID REFERENCES markets(id),
-    outcome_type VARCHAR(3) CHECK (outcome_type IN ('YES', 'NO')),
-    shares_amount DECIMAL DEFAULT 0,
-    average_buy_price DECIMAL DEFAULT 0,
-    UNIQUE(local_user_id, market_id, outcome_type)
-);
-
--- Buy/sell order logs
-CREATE TABLE local_orders (
-    id UUID PRIMARY KEY,
-    local_user_id UUID REFERENCES local_users(id),
-    market_id UUID REFERENCES markets(id),
-    order_type VARCHAR(4) CHECK (order_type IN ('BUY', 'SELL')),
-    outcome_type VARCHAR(3) CHECK (outcome_type IN ('YES', 'NO')),
-    shares_amount DECIMAL,
-    price_at_order DECIMAL,
-    total_cost DECIMAL,
-    central_transaction_id TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Market resolution payouts
-CREATE TABLE settlement_payouts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    market_id UUID REFERENCES markets(id),
-    local_user_id UUID REFERENCES local_users(id),
-    payout_amount DECIMAL,
-    status VARCHAR(20) DEFAULT 'PENDING_PAYOUT',
-    processed_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Market price history (for charts)
-CREATE TABLE market_price_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    market_id UUID REFERENCES markets(id),
-    outcome_type VARCHAR(3),
-    price DECIMAL,
-    recorded_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Market comments
-CREATE TABLE market_comments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    market_id UUID REFERENCES markets(id),
-    local_user_id UUID REFERENCES local_users(id),
-    content TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
 ```
 
 ---
@@ -226,7 +135,7 @@ npm run dev
 
 ### Step 2 — Start Jigsaw Market Next
 
-Open a **second terminal**:
+Open a second terminal:
 
 ```bash
 cd Jigsaw-Market-Next
@@ -240,26 +149,7 @@ npm run dev
 http://localhost:3001
 ```
 
-> ⚠️ The Coin API **must be running** before starting the Market Next app, as the market app authenticates users and processes coin transactions via the Coin API.
-
----
-
-## 📁 Project Structure (Market Next)
-
-```
-Jigsaw-Market-Next/
-├── app/
-│   ├── api/          # Next.js API routes (backend logic)
-│   ├── markets/      # Market listing & detail pages
-│   ├── portfolio/    # User portfolio page
-│   ├── login/        # Login page
-│   ├── register/     # Registration page
-│   └── page.tsx      # Landing page
-├── components/       # Shared React components (Navbar, Footer, etc.)
-├── lib/              # Database, Redis, auth, and API client utilities
-├── services/         # Business logic (trade execution, market resolution)
-└── public/           # Static assets
-```
+> ⚠️ The Jigsaw Coin API must be running before starting the Market Next app, as the market app authenticates users and processes coin transactions via the Coin API.
 
 ---
 
