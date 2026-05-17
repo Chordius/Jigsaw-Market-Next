@@ -49,7 +49,7 @@ export async function registerUserService(username: string, email: string, passw
 
         const todayUTC = new Date().toISOString().split('T')[0];
         try {
-            await creditCentralPoints(globalUserId, 100, `Daily Login Reward - ${todayUTC}`);
+            await creditCentralPoints(globalUserId, 100, `Daily Login Reward - ${todayUTC} - ${globalUserId}`);
             await client.query(
                 'UPDATE local_users SET last_login_reward = $1 WHERE id = $2',
                 [todayUTC, user.id]
@@ -116,7 +116,7 @@ export async function loginUserService(email: string, passwordRaw: string) {
 
         if (!alreadyReceived) {
             try {
-                const rewardRef = `Daily Login Reward - ${todayUTC}`;
+                const rewardRef = `Daily Login Reward - ${todayUTC} - ${globalUserId}`;
                 await creditCentralPoints(globalUserId, 100, rewardRef);
                 
                 await client.query(`
