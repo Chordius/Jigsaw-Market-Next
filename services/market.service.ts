@@ -102,7 +102,14 @@ export async function getOpenMarketsService(options?: {
             )
             AND ($2::text IS NULL OR m.category = $2)
             GROUP BY m.id
-            ORDER BY ${sortColumn} ${sortDirection}, m.created_at DESC
+            ORDER BY 
+                CASE 
+                    WHEN m.status = 'RESOLVED' THEN 3
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 2
+                    ELSE 1
+                END ASC,
+                ${sortColumn} ${sortDirection}, 
+                m.created_at DESC
         `, [status === 'ALL' ? null : status, category]);
 
         const markets = result.rows.map(mapMarketWithPrices);

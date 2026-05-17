@@ -152,7 +152,7 @@ export default async function LandingPage() {
                 <span className="text-mono-lg font-mono-lg text-primary">01</span>
               </div>
               <h3 className="text-h3 font-h3 text-on-surface mb-2">Select a Market</h3>
-              <p className="text-body-sm font-body-sm text-on-surface-variant">Browse thousands of global events across politics, sports, crypto, and technology.</p>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">Browse thousands of global events across politics, sports, entertainment, technology, and more.</p>
             </div>
             {/* Card 2 */}
             <div className="bg-surface border border-outline-variant p-8 rounded-lg relative overflow-hidden group">

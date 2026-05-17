@@ -21,11 +21,11 @@ export default function MarketsDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  
+
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Filters from URL
   const searchQuery = searchParams.get('search') || '';
   const selectedCategory = searchParams.get('category') || '';
@@ -48,11 +48,11 @@ export default function MarketsDashboard() {
     setLoading(true);
     try {
       // Build query string
-      let query = `?status=OPEN&sortBy=${sortBy}&order=${sortBy === 'ends_by' ? 'asc' : 'desc'}`;
+      let query = `?status=ALL&sortBy=${sortBy}&order=${sortBy === 'ends_by' ? 'asc' : 'desc'}`;
       if (selectedCategory) {
         query += `&category=${selectedCategory}`;
       }
-      
+
       const { data } = await apiClient.get(`/markets${query}`);
       if (data.success) {
         setMarkets(data.payload);
@@ -71,8 +71,8 @@ export default function MarketsDashboard() {
   }, [selectedCategory, sortBy]);
 
   // Client-side search filtering
-  const filteredMarkets = markets.filter(m => 
-    m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredMarkets = markets.filter(m =>
+    m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -83,29 +83,27 @@ export default function MarketsDashboard() {
         <div className="mb-8 px-4">
           <div className="text-h3 font-h3 text-on-surface mb-2">Categories</div>
         </div>
-        
+
         <nav className="flex-1 flex flex-col gap-1">
-          <button 
+          <button
             onClick={() => updateUrlParams('category', '')}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-100 ${
-              selectedCategory === '' 
-                ? 'bg-secondary-container text-on-secondary-container' 
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-100 ${selectedCategory === ''
+                ? 'bg-secondary-container text-on-secondary-container'
                 : 'text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-highest'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: selectedCategory === '' ? "'FILL' 1" : "'FILL' 0" }}>explore</span>
             <span className="font-body-sm font-semibold">All Markets</span>
           </button>
-          
+
           {categories.map((cat) => (
-            <button 
+            <button
               key={cat.id}
               onClick={() => updateUrlParams('category', cat.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-100 ${
-                selectedCategory === cat.id 
-                  ? 'bg-secondary-container text-on-secondary-container' 
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-100 ${selectedCategory === cat.id
+                  ? 'bg-secondary-container text-on-secondary-container'
                   : 'text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-highest'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined" style={{ fontVariationSettings: selectedCategory === cat.id ? "'FILL' 1" : "'FILL' 0" }}>{cat.icon}</span>
               <span className="font-body-sm font-semibold">{cat.label}</span>
@@ -121,16 +119,16 @@ export default function MarketsDashboard() {
           <div className="flex justify-between items-center gap-4">
             <div className="relative flex-1">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
-              <input 
-                className="w-full bg-surface border border-outline-variant rounded-DEFAULT py-3 pl-12 pr-4 text-on-surface font-body-md focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-outline-variant" 
-                placeholder="Search markets by keyword..." 
+              <input
+                className="w-full bg-surface border border-outline-variant rounded-DEFAULT py-3 pl-12 pr-4 text-on-surface font-body-md focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-outline-variant"
+                placeholder="Search markets by keyword..."
                 type="text"
                 value={searchQuery}
                 onChange={(e) => updateUrlParams('search', e.target.value)}
               />
             </div>
             {user && (
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="bg-primary text-background font-bold px-6 py-3 rounded hover:bg-primary-fixed transition-colors whitespace-nowrap"
               >
@@ -138,14 +136,14 @@ export default function MarketsDashboard() {
               </button>
             )}
           </div>
-          
+
           <div className="flex justify-between items-center">
             <div className="font-mono-sm text-outline">
-              Showing {filteredMarkets.length} open markets
+              Showing {filteredMarkets.length} markets
             </div>
             <div className="flex items-center gap-2">
               <span className="font-label-caps text-outline">SORT:</span>
-              <select 
+              <select
                 value={sortBy}
                 onChange={(e) => updateUrlParams('sort', e.target.value)}
                 className="bg-surface border border-outline-variant rounded py-1 px-2 text-on-surface font-mono-sm focus:border-primary focus:outline-none appearance-none"
@@ -183,10 +181,10 @@ export default function MarketsDashboard() {
         )}
       </main>
 
-      <CreateMarketModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSuccess={fetchMarkets} 
+      <CreateMarketModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchMarkets}
       />
     </div>
   );

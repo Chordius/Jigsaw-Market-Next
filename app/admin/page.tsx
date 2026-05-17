@@ -51,8 +51,7 @@ export default function AdminDashboard() {
   return (
     <div className="p-8 max-w-[1440px] mx-auto">
       <header className="mb-12">
-        <h2 className="font-h1 text-h1 text-on-surface">System Overview</h2>
-        <p className="text-on-surface-variant font-body-md">Platform performance and real-time metrics</p>
+        <h2 className="font-h1 text-h1 text-on-surface">Admin Dashboard</h2>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -90,15 +89,32 @@ export default function AdminDashboard() {
         <section className="bg-surface border border-outline-variant rounded-2xl p-6">
           <h3 className="font-h3 text-h3 mb-6 flex items-center gap-2">
             <span className="material-symbols-outlined">bolt</span>
-            Quick Actions
+            Market Actions
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <a href="/admin/markets" className="flex flex-col items-center justify-center p-6 bg-surface-container hover:bg-surface-container-high border border-outline-variant rounded-xl transition-all group">
               <span className="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">add_circle</span>
               <span className="font-label-lg text-on-surface">Manage Markets</span>
             </a>
-            <button 
-              onClick={() => alert("Payout processing will be automated via QStash/Redis plan.")}
+            <button
+              onClick={async () => {
+                try {
+                  const { data } = await apiClient.post('/admin/process-payouts');
+                  if (data.success) {
+                    alert(`Processed ${data.payload.paid} payouts successfully. Failed: ${data.payload.failed}`);
+                    // Refresh stats
+                    const statsRes = await apiClient.get('/admin/stats');
+                    if (statsRes.data.success) {
+                      setStats(statsRes.data.payload.stats);
+                      setActivity(statsRes.data.payload.recent_activity);
+                    }
+                  } else {
+                    alert(data.message);
+                  }
+                } catch (e: any) {
+                  alert(e.message || "Failed to process payouts");
+                }
+              }}
               className="flex flex-col items-center justify-center p-6 bg-surface-container hover:bg-surface-container-high border border-outline-variant rounded-xl transition-all group"
             >
               <span className="material-symbols-outlined text-secondary mb-2 group-hover:scale-110 transition-transform">refresh</span>
