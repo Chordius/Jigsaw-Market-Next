@@ -8,14 +8,20 @@ export async function getUserHoldingsService(localUserId: string) {
             SELECT 
                 h.id AS holding_id,
                 h.market_id,
+                m.title AS market_title,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END AS market_status,
                 h.outcome_type,
                 h.shares_amount,
                 h.average_buy_price,
-                h.local_user_id
+                h.local_user_id,
+                m.liquidity_yes,
+                m.liquidity_no
             FROM holdings h
-            JOIN markets m
-            ON h.market_id = m.id
-            WHERE h.local_user_id = $1 AND shares_amount > 0
+            JOIN markets m ON h.market_id = m.id
+            WHERE h.local_user_id = $1 AND h.shares_amount > 0
             ORDER BY m.created_at DESC
         `, [localUserId]
         );
@@ -25,14 +31,13 @@ export async function getUserHoldingsService(localUserId: string) {
             const lNo = parseFloat(row.liquidity_no);
             const totalLiquidity = lYes + lNo;
             
-            let currentPrice = 0.5;
+            let currentPrice = 5.0;
             if (totalLiquidity > 0) {
                 currentPrice = row.outcome_type === 'YES' 
-                    ? lYes / totalLiquidity 
-                    : lNo / totalLiquidity;
+                    ? (lYes / totalLiquidity) * 10
+                    : (lNo / totalLiquidity) * 10;
             }
 
-            // Calculate Unrealized Profit/Loss
             const totalInvested = parseFloat(row.average_buy_price) * parseFloat(row.shares_amount);
             const currentValue = currentPrice * parseFloat(row.shares_amount);
             const unrealizedPnl = currentValue - totalInvested;

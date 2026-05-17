@@ -1,5 +1,5 @@
 import { pool } from '@/lib/db';
-import { loginGlobalUser, registerGlobalUser } from '@/lib/jigsawcoin';
+import { loginGlobalUser, registerGlobalUser, creditCentralPoints } from '@/lib/jigsawcoin';
 import bcrypt from 'bcryptjs';
 
 
@@ -45,7 +45,20 @@ export async function registerUserService(username: string, email: string, passw
             [globalUserId, username, email]
         );
 
-        return result.rows[0];
+        const user = result.rows[0];
+
+        const todayUTC = new Date().toISOString().split('T')[0];
+        try {
+            await creditCentralPoints(globalUserId, 100, `Daily Login Reward - ${todayUTC}`);
+            await client.query(
+                'UPDATE local_users SET last_login_reward = $1 WHERE id = $2',
+                [todayUTC, user.id]
+            );
+        } catch (e) {
+            console.error("Failed to give registration reward:", e);
+        }
+
+        return user;
     } catch (error: any) {
         if (error?.code === '23505') {
             if (error.constraint === 'local_users_username_key') {
@@ -71,7 +84,7 @@ export async function loginUserService(email: string, passwordRaw: string) {
         const globalUserId = centralAuth.global_user_id;
 
         let localCheck = await client.query(
-            'SELECT id, username FROM local_users WHERE central_user_id = $1',
+            'SELECT id, username, email FROM local_users WHERE central_user_id = $1',
             [globalUserId]
         );
 
@@ -83,7 +96,7 @@ export async function loginUserService(email: string, passwordRaw: string) {
             const insertResult = await client.query(`
                 INSERT INTO local_users (central_user_id, username, email)
                 VALUES ($1, $2, $3)
-                RETURNING id, username
+                RETURNING id, username, email
             `, [globalUserId, generatedUsername, email]);
 
             localCheck = insertResult;
@@ -91,9 +104,36 @@ export async function loginUserService(email: string, passwordRaw: string) {
 
         const user = localCheck.rows[0];
 
+        const todayUTC = new Date().toISOString().split('T')[0];
+        
+        const rewardCheck = await client.query(`
+            SELECT id 
+            FROM local_users 
+            WHERE id = $1 AND last_login_reward = $2::DATE
+        `, [user.id, todayUTC]);
+        
+        const alreadyReceived = rewardCheck.rows.length > 0;
+
+        if (!alreadyReceived) {
+            try {
+                const rewardRef = `Daily Login Reward - ${todayUTC}`;
+                await creditCentralPoints(globalUserId, 100, rewardRef);
+                
+                await client.query(`
+                    UPDATE local_users 
+                    SET last_login_reward = $1 
+                    WHERE id = $2
+                `, [todayUTC, user.id]);
+                
+                console.log(`Daily reward given to ${user.username} for ${todayUTC}`);
+            } catch (err) {
+                console.error("Failed to process daily login reward:", err);
+            }
+        }
+
         return {
-            localId: user.id,
-            centralId: globalUserId,
+            id: user.id,
+            central_user_id: globalUserId,
             username: user.username
         };
     } catch (error: any) {

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         const settlementId = typeof body.settlementId === 'string' ? body.settlementId : undefined;
         const marketId = typeof body.marketId === 'string' ? body.marketId : undefined;
         const payoutIds = Array.isArray(body.payoutIds)
-            ? body.payoutIds.filter((id): id is string => typeof id === 'string')
+            ? body.payoutIds.filter((id: any): id is string => typeof id === 'string')
             : undefined;
 
         const parsedLimit = Number.parseInt(String(body.limit ?? '100'), 10);

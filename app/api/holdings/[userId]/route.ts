@@ -4,10 +4,9 @@ import { baseResponse } from '@/lib/base_response';
 
 export async function GET(
     request: Request,
-    { params }: { params: { userId: string } }
+    { params }: { params: Promise<{ userId: string }> }
 ) {
-    const resolvedParams = await params;
-    const localUserId = resolvedParams.userId;
+    const { userId: localUserId } = await params;
     try {
         if (!localUserId) {
             return NextResponse.json(

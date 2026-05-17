@@ -12,13 +12,18 @@ function getErrorMessage(error: unknown): string {
 
 // Helper function to calculate AMM Price
 const calculatePrices = (liquidityYes: string, liquidityNo: string) => {
-    const lYes = parseFloat(liquidityYes);
-    const lNo = parseFloat(liquidityNo);
-    const total = lYes + lNo;
+    const qYes = parseFloat(liquidityYes);
+    const qNo = parseFloat(liquidityNo);
+    
+    const b = 100;
+    
+    const priceYes = 10 * (1 / (1 + Math.exp((qNo - qYes) / b)));
+    const priceNo = 10 - priceYes;
     
     return {
-        price_yes: total > 0 ? lYes / total : 0.5,
-        price_no: total > 0 ? lNo / total : 0.5,
+        price_yes: priceYes,
+        price_no: priceNo,
+        liquidity_b: b
     };
 };
 
@@ -44,6 +49,8 @@ const mapMarketWithPrices = (market: {
     resolved_outcome: market.resolved_outcome,
     investor_count: Number(market.investor_count ?? 0),
     total_invested: parseFloat(market.total_invested ?? '0'),
+    liquidity_yes: market.liquidity_yes,
+    liquidity_no: market.liquidity_no,
     ...calculatePrices(market.liquidity_yes, market.liquidity_no),
 });
 
@@ -73,19 +80,36 @@ export async function getOpenMarketsService(options?: {
                 m.title,
                 m.category,
                 m.end_date,
-                m.status,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END as status,
                 m.description,
                 m.resolved_outcome,
                 m.liquidity_yes,
                 m.liquidity_no,
-                COUNT(DISTINCT lo.local_user_id) FILTER (WHERE lo.order_type = 'BUY') AS investor_count,
-                COALESCE(SUM(lo.total_cost) FILTER (WHERE lo.order_type = 'BUY'), 0) AS total_invested
+                (SELECT COUNT(DISTINCT local_user_id) FROM holdings WHERE market_id = m.id AND shares_amount > 0) AS investor_count,
+                (
+                    COALESCE((SELECT SUM(total_cost) FROM local_orders WHERE market_id = m.id AND order_type = 'BUY'), 0) -
+                    COALESCE((SELECT SUM(total_cost) FROM local_orders WHERE market_id = m.id AND order_type = 'SELL'), 0)
+                ) AS total_invested
             FROM markets m
-            LEFT JOIN local_orders lo ON lo.market_id = m.id
-            WHERE ($1::text IS NULL OR m.status = $1)
+            WHERE ($1::text IS NULL OR 
+                (CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END) = $1
+            )
             AND ($2::text IS NULL OR m.category = $2)
             GROUP BY m.id
-            ORDER BY ${sortColumn} ${sortDirection}, m.created_at DESC
+            ORDER BY 
+                CASE 
+                    WHEN m.status = 'RESOLVED' THEN 3
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 2
+                    ELSE 1
+                END ASC,
+                ${sortColumn} ${sortDirection}, 
+                m.created_at DESC
         `, [status === 'ALL' ? null : status, category]);
 
         const markets = result.rows.map(mapMarketWithPrices);
@@ -100,9 +124,27 @@ export async function getMarketByIdService(marketId: string) {
     const client = await pool.connect();
     try {
         const result = await client.query(`
-            SELECT id, title, description, category, end_date, status, resolved_outcome, liquidity_yes, liquidity_no 
-            FROM markets 
-            WHERE id = $1
+            SELECT 
+                m.id,
+                m.title,
+                m.description,
+                m.category,
+                m.end_date,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END as status,
+                m.resolved_outcome,
+                m.liquidity_yes,
+                m.liquidity_no,
+                (SELECT COUNT(DISTINCT local_user_id) FROM holdings WHERE market_id = m.id AND shares_amount > 0) AS investor_count,
+                (
+                    COALESCE((SELECT SUM(total_cost) FROM local_orders WHERE market_id = m.id AND order_type = 'BUY'), 0) -
+                    COALESCE((SELECT SUM(total_cost) FROM local_orders WHERE market_id = m.id AND order_type = 'SELL'), 0)
+                ) AS total_invested
+            FROM markets m
+            WHERE m.id = $1
+            GROUP BY m.id
         `, [marketId]);
 
         if (result.rows.length === 0) return null;
@@ -122,8 +164,8 @@ export async function createMarketService(
     const client = await pool.connect();
     try {
         const result = await client.query(`
-            INSERT INTO markets (title, category, end_date, description)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO markets (title, category, end_date, description, liquidity_yes, liquidity_no)
+            VALUES ($1, $2, $3, $4, 5.00, 5.00)
             RETURNING id, title, category, end_date, status, description, resolved_outcome, liquidity_yes, liquidity_no
         `, [title, category, endDate, description ?? null]);
 
@@ -148,7 +190,10 @@ export async function getMarketLeaderboardService(options?: {
                 m.title,
                 m.category,
                 m.end_date,
-                m.status,
+                CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END as status,
                 m.description,
                 m.resolved_outcome,
                 m.liquidity_yes,
@@ -157,7 +202,12 @@ export async function getMarketLeaderboardService(options?: {
                 COALESCE(SUM(lo.total_cost) FILTER (WHERE lo.order_type = 'BUY'), 0) AS total_invested
             FROM markets m
             LEFT JOIN local_orders lo ON lo.market_id = m.id
-            WHERE ($1::text IS NULL OR m.status = $1)
+            WHERE ($1::text IS NULL OR 
+                (CASE 
+                    WHEN m.status = 'OPEN' AND m.end_date <= NOW() THEN 'CLOSED'
+                    ELSE m.status
+                END) = $1
+            )
             GROUP BY m.id
             ORDER BY total_invested DESC, investor_count DESC, m.created_at DESC
             LIMIT $2
@@ -220,7 +270,7 @@ export async function resolveMarketService(
             const shares = parseFloat(row.shares_amount);
             if (shares <= 0) continue;
 
-            const payout = shares * 1.0;
+            const payout = shares * 10.0;
 
             await client.query(
                 `INSERT INTO settlement_payouts (
@@ -259,6 +309,21 @@ export async function resolveMarketService(
         }
 
         await client.query('COMMIT');
+
+        if (winnersRes.rows.length > 0 && process.env.QSTASH_TOKEN) {
+            try {
+                const { Client } = await import("@upstash/qstash");
+                const qstashClient = new Client({ token: process.env.QSTASH_TOKEN });
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+                await qstashClient.publishJSON({
+                    url: `${baseUrl}/api/settlements/process`,
+                    body: { limit: 50 },
+                });
+                console.log(`[QStash] Payout triggered for market ${marketId}`);
+            } catch (err) {
+                console.error("[QStash] Failed to trigger payout", err);
+            }
+        }
 
         return {
             marketId,
