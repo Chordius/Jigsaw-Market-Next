@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import MarketCard, { Market } from '@/components/MarketCard';
@@ -17,7 +17,7 @@ const categories = [
   { id: "Others", label: 'Others', icon: 'category' }
 ];
 
-export default function MarketsDashboard() {
+function MarketsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -187,5 +187,17 @@ export default function MarketsDashboard() {
         onSuccess={fetchMarkets}
       />
     </div>
+  );
+}
+
+export default function MarketsDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <MarketsContent />
+    </Suspense>
   );
 }

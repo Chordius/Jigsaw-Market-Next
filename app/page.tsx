@@ -13,15 +13,16 @@ interface TrendingMarket {
 
 async function getTrendingMarkets(): Promise<TrendingMarket[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const res = await fetch(
-      `${baseUrl}/markets?status=OPEN&sortBy=popularity&order=desc`,
+      `${baseUrl}/api/markets?status=OPEN&sortBy=popularity&order=desc`,
       { next: { revalidate: 60 } }
     );
     if (!res.ok) return [];
     const data = await res.json();
     return data.success ? data.payload.slice(0, 3) : [];
-  } catch {
+  } catch (err) {
+    console.error("Failed to fetch trending markets on server components", err);
     return [];
   }
 }
