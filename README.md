@@ -37,7 +37,7 @@ Both services share PostgreSQL databases (separate schemas) and communicate via 
 ![jigsaw market UML](<docs/finpro sbd-Page-4.drawio.png>)
 ### ERD — Entity Relationship Diagram
 #### Jigsaw Market Database
-![jigsaw market ERD](<docs/finpro sbd-Page-1.drawio.png>)
+![jigsaw market ERD](<docs/finpro sbd-Page-1.drawio (2).png>)
 
 #### Jigsaw Coin API Database
 ![jigsaw coin erd](<docs/finpro sbd-Page-2.jpg>)
