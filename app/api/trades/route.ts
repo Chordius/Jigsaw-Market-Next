@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { baseResponse } from '@/lib/base_response';
 import { executeTrade, executeSellTrade } from '@/services/trade.services';
+import { tradeRateLimit } from '@/lib/ratelimit';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { localUserId, centralUserId, marketId, outcomeType, sharesToBuy, sharesToSell, action } = body;
+
+    // Use user ID or IP for rate limiting
+    const identifier = localUserId ? `user_${localUserId}` : (request.headers.get("x-forwarded-for") ?? "127.0.0.1");
+    const { success } = await tradeRateLimit.limit(identifier);
+
+    if (!success) {
+      return NextResponse.json(baseResponse(false, 'Too many trade requests. Please try again in a few seconds.', null), { status: 429 });
+    }
 
     const tradeAction = action || (sharesToSell ? 'SELL' : 'BUY');
 

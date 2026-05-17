@@ -5,10 +5,10 @@ import { fetchCentralHistory } from '@/lib/jigsawcoin';
 
 export async function GET(
   request: Request,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     const userRes = await pool.query(
       'SELECT central_user_id FROM local_users WHERE id = $1',

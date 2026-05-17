@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server';
 import { baseResponse } from '@/lib/base_response';
 import { registerUserService } from '@/services/auth.service';
 import { createSession } from '@/lib/auth';
+import { authRateLimit } from '@/lib/ratelimit';
 
 export async function POST(request: Request) {
     try {
+        const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
+        const { success } = await authRateLimit.limit(ip);
+        
+        if (!success) {
+            return NextResponse.json(baseResponse(false, 'Too many registration attempts. Please try again later.', null), { status: 429 });
+        }
+
         const { username, email, password } = await request.json();
 
         if (!username || !email || !password) {
