@@ -153,6 +153,9 @@ http://localhost:3001
 
 ---
 
+## 💻 Progress Report:
+![Flow chart](<docs/progress report_finpro sbd.jpeg>)
+---
 ## 🔗 Related Repositories
 
 - **Jigsaw Coin API** → [github.com/Chordius/Jigsaw-Coin-API](https://github.com/Chordius/Jigsaw-Coin-API)

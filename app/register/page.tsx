@@ -169,17 +169,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 pt-2">
-                <div className="flex items-center h-5">
-                  <input className="h-4 w-4 bg-surface border-outline-variant rounded-sm text-primary focus:ring-primary focus:ring-offset-background cursor-pointer" id="terms" name="terms" required type="checkbox" />
-                </div>
-                <div className="text-sm">
-                  <label className="font-body-sm text-body-sm text-on-surface-variant cursor-pointer" htmlFor="terms">
-                    I agree to the <a className="text-primary hover:text-primary-fixed underline decoration-primary/30 underline-offset-4 transition-colors" href="#">Terms & Conditions</a>
-                  </label>
-                </div>
-              </div>
-
               <div className="pt-4">
                 <button 
                   className="w-full flex justify-center py-3 px-4 border border-transparent rounded-DEFAULT shadow-sm font-h3 text-h3 text-on-primary bg-primary-container btn-glow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary transition-all active:scale-[0.98] disabled:opacity-50" 
