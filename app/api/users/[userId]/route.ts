@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { baseResponse } from '@/lib/base_response';
 import { getUserProfileService } from '@/services/user.service';
+import { getSession } from '@/lib/auth';
 
 export async function GET(
     request: Request,
@@ -17,6 +18,12 @@ export async function GET(
         }
 
         const userProfile = await getUserProfileService(userId);
+        
+        const session = await getSession();
+        // Redact sensitive info if user is not viewing their own profile
+        if (!session || (!session.user.is_admin && session.user.id !== userId)) {
+            userProfile.email = undefined; // Or delete userProfile.email
+        }
 
         return NextResponse.json(
             baseResponse(true, 'Successfully fetched user profile', userProfile),

@@ -2,7 +2,10 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const secretKey = process.env.JWT_SECRET || 'jigsaw-market-super-secret-key-for-local-dev';
+const secretKey = process.env.JWT_SECRET;
+if (!secretKey) {
+  throw new Error('JWT_SECRET environment variable is missing.');
+}
 const key = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: any) {
